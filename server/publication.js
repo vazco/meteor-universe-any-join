@@ -4,11 +4,11 @@ UniCollection.publish('uniAnyJoin', function(subjectId, subjectName){
     if(!subjectId || !UniUsers.getLoggedInId()){
         this.ready();
     }
-    if(subjectName && UniAnyJoin._collection[subjectName]){
-        this.mappings(UniAnyJoin,[
+    if(subjectName && UniAnyJoin.getSubjectCollection(subjectName)){
+        this.setMappings(UniAnyJoin,[
             {
                 key: 'subjectId',
-                collection: UniAnyJoin._collection[subjectName]
+                collection: UniAnyJoin.getSubjectCollection(subjectName)
 
             }
         ]);

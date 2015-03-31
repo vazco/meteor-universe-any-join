@@ -21,7 +21,7 @@ UniAnyJoin._addServerActions = function(collection){
                     case UniAnyJoin.STATUS_INVITED:
                         return false;
                     case UniAnyJoin.STATUS_REQUESTED:
-                        return doc.acceptJoinRequest(toUser);
+                        return doc.acceptJoinRequest(toUser, originator);
                 }
             }
             return UniAnyJoin.insert({
@@ -38,7 +38,7 @@ UniAnyJoin._addServerActions = function(collection){
             if(this.isJoined(fromUser)){
                 throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
             }
-            originatorId = originatorId || UniUsers.getLoggedInId();
+            originatorId = UniUtils.getIdIfDocument(originatorId) || UniUsers.getLoggedInId();
             var lastJoiningDoc = this.getJoiningRow(fromUser);
             var doc = this;
             if(_.isObject(lastJoiningDoc)){
@@ -78,21 +78,19 @@ UniAnyJoin._addServerActions = function(collection){
             }
             return lastJoiningDoc.update({$set:{status: UniAnyJoin.STATUS_JOINED, acceptorId: acceptor._id}});
         },
-        acceptJoinInvitation: function(toUser){
-            if(this.isJoined(toUser)){
-                throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
-            }
-            var lastJoiningDoc = this.getJoiningRow(toUser);
+        acceptJoinInvitation: function(toUserId){
+            toUserId = UniUtils.getIdIfDocument(toUserId);
+            var lastJoiningDoc = this.getJoiningRow(toUserId);
             if(!lastJoiningDoc){
                 throw new Meteor.Error(404, i18n('anyJoin:errors:missingJoiningInvitation'));
             }
-            var toUserId = UniUtils.getIdIfDocument(toUser);
             if(lastJoiningDoc.type === UniAnyJoin.TYPE_JOIN_INVITATION && lastJoiningDoc.possessorId === toUserId){
                 return lastJoiningDoc.update({$set:{status: UniAnyJoin.STATUS_JOINED, acceptorId: toUserId}});
             }
         },
 
         join: function(userId){
+            userId = UniUtils.getIdIfDocument(userId) || UniUsers.getLoggedInId();
             if(!this.canJoinDirectly(userId)){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
             }
@@ -109,7 +107,8 @@ UniAnyJoin._addServerActions = function(collection){
                 possessorId: userId._id,
                 type: UniAnyJoin.TYPE_JOIN_OPEN,
                 status: UniAnyJoin.STATUS_REQUESTED,
-                originatorId: userId
+                originatorId: userId,
+                acceptorId: userId
             });
         },
 
@@ -148,9 +147,9 @@ Meteor.methods({
         var subject = _getSubjectDocument(collectionName, subjectId);
         return subject.sendJoinInvitation(userId, this.userId);
     },
-    'UniAnyJoin/sendJoinRequest': function(collectionName, subjectId, userId){
+    'UniAnyJoin/sendJoinRequest': function(collectionName, subjectId){
         var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.sendJoinRequest(userId, this.userId);
+        return subject.sendJoinRequest(this.userId, this.userId);
     },
     'UniAnyJoin/acceptJoinRequest': function(collectionName, subjectId, forUserId){
         var subject = _getSubjectDocument(collectionName, subjectId);

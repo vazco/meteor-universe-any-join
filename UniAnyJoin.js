@@ -31,7 +31,11 @@ UniAnyJoin.attachSchema(new SimpleSchema({
         },
         type: {
             type: String,
-            allowedValues: [UniAnyJoin.TYPE_JOIN_REQUEST, UniAnyJoin.TYPE_JOIN_INVITATION, UniAnyJoin.TYPE_JOIN_OPEN]
+            allowedValues: [
+                UniAnyJoin.TYPE_JOIN_REQUEST,
+                UniAnyJoin.TYPE_JOIN_INVITATION,
+                UniAnyJoin.TYPE_JOIN_OPEN
+            ]
         },
         originatorId: {
             type: String,
@@ -90,7 +94,7 @@ var _addToSchemaJoiningFields = function(collection){
         try{
             sObject = collection.simpleSchema().schema();
         } catch(e){ console.warn('Collection "'+collection._name+'" has no simpleSchema'); }
-        if(_.size(sObject)){
+        if(_.size(sObject) && !sObject._joiningPolicy){
             sObject._joiningPolicy = {
                 type: String,
                 allowedValues: [
@@ -118,7 +122,7 @@ var _addJoiningHelpersToDocument = function(collection){
                 subjectId: this._id,
                 subjectCollectionName: collection._name,
                 possessorId: userId
-            });
+            }, {sort: {createdAt: -1}});
         },
         isJoined: function(userId){
             userId = UniUtils.getIdIfDocument(UniUtils.getUniUserObject(userId));
@@ -165,7 +169,7 @@ var _addJoiningHelpersToDocument = function(collection){
         },
         isJoinRequestSent: function(userId){
             userId = UniUtils.getIdIfDocument(UniUtils.getUniUserObject(userId));
-            var doc = this.getJoiningRow(userId);
+            var doc = this.getJoiningRow(userId, true);
             return doc && doc.status === UniAnyJoin.STATUS_REQUESTED;
         },
         canLeaveUser: function(acceptor, user){
