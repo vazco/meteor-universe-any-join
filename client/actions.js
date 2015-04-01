@@ -1,73 +1,75 @@
 'use strict';
 
 UniAnyJoin._addClientActions = function(collection){
-    collection.helpers({
-        sendJoinInvitation: function(toUser, cb){
+    var helpers = {
+        joinSendInvitation: function(joiningName, toUser, cb){
             cb = cb || function(err){ if(err){console.error(err);} };
             toUser = UniUtils.getUniUserObject(toUser, true);
-            if(toUser && this.isJoined(toUser)){
+            if(toUser && this.joinIsJoined(joiningName, toUser)){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
             }
-            if(this.canSendJoinInvitation() && toUser){
-                return Meteor.call('UniAnyJoin/sendJoinInvitation', collection._name, this._id, toUser._id, cb);
+            if(this.joinCanSendInvitation(joiningName) && toUser){
+                return Meteor.call('UniAnyJoin/joinSendInvitation', joiningName, collection._name, this._id, toUser._id, cb);
             }
             cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
         },
-        sendJoinRequest: function(cb){
+        joinSendRequest: function(joiningName, cb){
             cb = cb || function(err){ if(err){ console.error(err); } };
             var fromUser = UniUsers.getLoggedIn();
-            if(this.isJoined(fromUser)){
+            if(this.joinIsJoined(joiningName, fromUser)){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
             }
-            if(this.canSendJoinRequest(fromUser) && fromUser){
-                return Meteor.call('UniAnyJoin/sendJoinRequest', collection._name, this._id, cb);
+            if(this.joinCanSendRequest(joiningName, fromUser) && fromUser){
+                return Meteor.call('UniAnyJoin/joinSendRequest', joiningName, collection._name, this._id, cb);
             }
             cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
         },
-        acceptJoinRequest: function(fromUser, cb){
+        joinAcceptRequest: function(joiningName, fromUser, cb){
             cb = cb || function(err){ if(err){console.error(err);} };
-            if(this.isJoined(fromUser)){
+            if(this.joinIsJoined(joiningName, fromUser)){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
             }
-            if(this.canAcceptJoinRequest(acceptor) &&  fromUser && acceptor){
-                return Meteor.call('UniAnyJoin/acceptJoinRequest', collection._name, this._id, fromUser._id, cb);
+            var acceptor = UniUsers.getLoggedIn();
+            if(this.joinCanAcceptRequest(joiningName, acceptor) &&  fromUser && acceptor){
+                return Meteor.call('UniAnyJoin/joinAcceptRequest', joiningName, collection._name, this._id, fromUser._id, cb);
             }
             cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
         },
-        acceptJoinInvitation: function(cb){
+        joinAcceptInvitation: function(joiningName, cb){
             cb = cb || function(err){ if(err){console.error(err);} };
-            if(this.isJoined(UniUsers.getLoggedIn())){
+            if(this.joinIsJoined(joiningName, UniUsers.getLoggedIn())){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
             }
-            return Meteor.call('UniAnyJoin/acceptJoinInvitation', collection._name, this._id, cb);
+            return Meteor.call('UniAnyJoin/joinAcceptInvitation', joiningName, collection._name, this._id, cb);
         },
-
-        join: function(cb){
+        join: function(joiningName, cb){
             cb = cb || function(err){ if(err){console.error(err);} };
-            if(this.getJoinPolicy() === UniAnyJoin.TYPE_JOIN_OPEN){
-                return Meteor.call('UniAnyJoin/join', collection._name, this._id, cb);
+            if(this.joinGetPolicy(joiningName) === UniAnyJoin.TYPE_JOIN_OPEN){
+                return Meteor.call('UniAnyJoin/join', joiningName, collection._name, this._id, cb);
             }
             cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
         },
-
-        changeJoinPolicy: function(type, cb){
+        joinChangePolicy: function(joiningName, type, cb){
             cb = cb || function(err){ if(err){console.error(err);} };
             var user = UniUsers.getLoggedIn();
-            if(user && this.canChangeJoinPolicy(user)){
-                return Meteor.call('UniAnyJoin/changeJoinPolicy', collection._name, this._id, type, cb);
+            if(user && this.joinCanChangePolicy(joiningName, user)){
+                return Meteor.call('UniAnyJoin/joinChangePolicy', joiningName, collection._name, this._id, type, cb);
             }
             cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
         },
-        leaveJoinedSubject: function(user, cb){
+        joinResign: function(joiningName, user, cb){
             if(!user){
                 user = UniUsers.getLoggedIn();
             }
             cb = cb || function(err){ if(err){console.error(err);} };
             user = UniUtils.getUniUserObject(user);
-            if(user && this.canLeaveUser(UniUsers.getLoggedIn(), user)){
-                return Meteor.call('UniAnyJoin/leaveJoinedSubject', collection._name, this._id, user._id, cb);
+            if(user && this.joinCanResign(joiningName, UniUsers.getLoggedIn(), user)){
+                return Meteor.call('UniAnyJoin/joinResign', joiningName, collection._name, this._id, user._id, cb);
             }
             cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
         }
-    });
+
+    };
+
+    collection.helpers(helpers);
 };

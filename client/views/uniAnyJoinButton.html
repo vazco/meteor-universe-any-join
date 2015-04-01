@@ -1,16 +1,16 @@
 <template name="uniAnyJoinButton">
     {{#if Template.subscriptionsReady}}
         {{#with getSubject}}
-           {{#if isJoined}}
+           {{#if joinIsJoined getJoiningName}}
                <button class="btn btn-warning js-uaj-leave {{../classes}}">{{i18n 'anyJoin.leave'}}</button>
            {{else}}
-               {{#if isUserInvitedToJoin}}
-                   <button class="btn btn-success js-uaj-accept-invitation {{../classes}}">{{i18n 'anyJoin.acceptInvitation'}}</button>
+               {{#if joinIsUserInvited getJoiningName}}
+                   <button class="btn btn-success js-uaj-accept-invitation {{../classes}}">{{i18n 'anyJoin.joinAcceptInvitation'}}</button>
                    {{else}}
-                   {{#if eq getJoinPolicy UniAnyJoin.TYPE_JOIN_REQUEST}}
-                        <button disabled="{{isJoinRequestSent}}" class="btn btn-primary js-uaj-send-request {{../classes}}">{{i18n 'anyJoin.sendRequest'}}</button>
+                   {{#if eq getCurrentPolicy UniAnyJoin.TYPE_JOIN_REQUEST}}
+                        <button disabled="{{isRequestSent}}" class="btn btn-primary js-uaj-send-request {{../classes}}">{{i18n 'anyJoin.joinSendRequest'}}</button>
                        {{else}}
-                       {{#if eq getJoinPolicy UniAnyJoin.TYPE_JOIN_OPEN}}
+                       {{#if eq getCurrentPolicy UniAnyJoin.TYPE_JOIN_OPEN}}
                            <button class="btn btn-primary js-uaj-join {{../classes}}">{{i18n 'anyJoin.join'}}</button>
                        {{/if}}
                    {{/if}}

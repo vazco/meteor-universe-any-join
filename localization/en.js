@@ -4,8 +4,8 @@ i18n.map('en', {
     anyJoin: {
         leave: 'Leave',
         join: 'Join',
-        sendRequest: 'Request membership',
-        acceptInvitation: 'Accept invitation',
+        joinSendRequest: 'Request membership',
+        joinAcceptInvitation: 'Accept invitation',
         noInvitations: 'There are no current invitations.',
         errors:{
             userAlreadyJoined: 'User already is joined to this entity',

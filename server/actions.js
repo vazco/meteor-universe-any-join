@@ -1,30 +1,31 @@
 'use strict';
 
 UniAnyJoin._addServerActions = function(collection){
-    collection.helpers({
-        sendJoinInvitation: function(toUser, originator){
+    var helpers = {
+        joinSendInvitation: function(joiningName, toUser, originator){
             toUser = UniUtils.getUniUserObject(toUser, true);
             originator = UniUtils.getUniUserObject(originator, true);
-            if(this.isJoined(toUser)){
+            if(this.joinIsJoined(joiningName, toUser)){
                 throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
             }
             if(!originator){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:missingOriginator'));
             }
-            if(!this.canSendJoinInvitation(originator)){
+            if(!this.joinCanSendInvitation(joiningName, originator)){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
             }
-            var lastJoiningDoc = this.getJoiningRow(toUser);
+            var lastJoiningDoc = this.joinGetRow(joiningName, toUser);
             var doc = this;
             if(_.isObject(lastJoiningDoc)){
                 switch(lastJoiningDoc.status){
                     case UniAnyJoin.STATUS_INVITED:
                         return false;
                     case UniAnyJoin.STATUS_REQUESTED:
-                        return doc.acceptJoinRequest(toUser, originator);
+                        return doc.joinAcceptRequest(joiningName, toUser, originator);
                 }
             }
-            return UniAnyJoin.insert({
+            var insertRes = UniAnyJoin.insert({
+                joiningName: joiningName,
                 subjectId: doc._id,
                 subjectCollectionName: collection._name,
                 possessorId: toUser._id,
@@ -32,27 +33,35 @@ UniAnyJoin._addServerActions = function(collection){
                 status: UniAnyJoin.STATUS_INVITED,
                 originatorId: originator._id
             });
+            _runCallback.call(this, 'onInvitation', joiningName, UniAnyJoin.findOne(insertRes), toUser, originator);
+            return insertRes;
         },
-        sendJoinRequest: function(fromUser, originatorId){
+        joinSendRequest: function(joiningName, fromUser, originatorId){
             fromUser = UniUtils.getUniUserObject(fromUser);
-            if(this.isJoined(fromUser)){
+
+            if(this.joinIsJoined(joiningName, fromUser)){
                 throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
             }
+
             originatorId = UniUtils.getIdIfDocument(originatorId) || UniUsers.getLoggedInId();
-            var lastJoiningDoc = this.getJoiningRow(fromUser);
+            var lastJoiningDoc = this.joinGetRow(joiningName, fromUser);
             var doc = this;
+
             if(_.isObject(lastJoiningDoc)){
                 switch(lastJoiningDoc.status){
                     case UniAnyJoin.STATUS_INVITED:
-                        return this.acceptJoinInvitation(fromUser);
+                        return this.joinAcceptInvitation(joiningName, fromUser);
                     case UniAnyJoin.STATUS_REQUESTED:
                         return false;
                 }
             }
-            if(!this.canSendJoinRequest(fromUser)){
+
+            if(!this.joinCanSendRequest(joiningName, fromUser)){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
             }
-            return UniAnyJoin.insert({
+
+            var insertRes = UniAnyJoin.insert({
+                joiningName: joiningName,
                 subjectId: doc._id,
                 subjectCollectionName: collection._name,
                 possessorId: fromUser._id,
@@ -60,48 +69,63 @@ UniAnyJoin._addServerActions = function(collection){
                 status: UniAnyJoin.STATUS_REQUESTED,
                 originatorId: originatorId
             });
+
+            _runCallback.call(this, 'onRequest', joiningName, UniAnyJoin.findOne(insertRes), fromUser, originatorId);
+            return insertRes;
         },
-        acceptJoinRequest: function(fromUser, acceptor){
-            if(this.isJoined(fromUser)){
+        joinAcceptRequest: function(joiningName, fromUser, acceptor){
+            if(this.joinIsJoined(joiningName, fromUser)){
                 throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
             }
-            var lastJoiningDoc = this.getJoiningRow(fromUser);
+
+            var lastJoiningDoc = this.joinGetRow(joiningName, fromUser);
             if(!lastJoiningDoc){
                 throw new Meteor.Error(404, i18n('anyJoin:errors:missingJoiningRequest'));
             }
+
             acceptor = UniUtils.getUniUserObject(acceptor);
             if(!acceptor){
                 throw new Meteor.Error(404, i18n('anyJoin:errors:missingAcceptor'));
             }
-            if(lastJoiningDoc.type !== UniAnyJoin.TYPE_JOIN_REQUEST || !this.canAcceptJoinRequest(acceptor)){
+
+            if(lastJoiningDoc.type !== UniAnyJoin.TYPE_JOIN_REQUEST ||
+                !this.joinCanAcceptRequest(joiningName, acceptor)){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
             }
-            return lastJoiningDoc.update({$set:{status: UniAnyJoin.STATUS_JOINED, acceptorId: acceptor._id}});
+
+            var updateRes = lastJoiningDoc.update({$set:{status: UniAnyJoin.STATUS_JOINED, acceptorId: acceptor._id}});
+
+            _runCallback.call(this, 'onAcceptRequest', joiningName, lastJoiningDoc.findSelf(), fromUser, acceptor);
+            return updateRes;
         },
-        acceptJoinInvitation: function(toUserId){
+        joinAcceptInvitation: function(joiningName, toUserId){
             toUserId = UniUtils.getIdIfDocument(toUserId);
-            var lastJoiningDoc = this.getJoiningRow(toUserId);
+            var lastJoiningDoc = this.joinGetRow(joiningName, toUserId);
             if(!lastJoiningDoc){
                 throw new Meteor.Error(404, i18n('anyJoin:errors:missingJoiningInvitation'));
             }
             if(lastJoiningDoc.type === UniAnyJoin.TYPE_JOIN_INVITATION && lastJoiningDoc.possessorId === toUserId){
-                return lastJoiningDoc.update({$set:{status: UniAnyJoin.STATUS_JOINED, acceptorId: toUserId}});
+                var updateRes = lastJoiningDoc.update({$set:{status: UniAnyJoin.STATUS_JOINED, acceptorId: toUserId}});
+                _runCallback.call(this, 'onAcceptInvitation', joiningName, lastJoiningDoc.findSelf(), toUserId);
+                return updateRes;
             }
         },
-
-        join: function(userId){
+        join: function(joiningName, userId){
             userId = UniUtils.getIdIfDocument(userId) || UniUsers.getLoggedInId();
-            if(!this.canJoinDirectly(userId)){
+            if(!this.joinCanJoinDirectly(joiningName, userId)){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
             }
-            var lastJoiningDoc = this.getJoiningRow(userId);
+            var lastJoiningDoc = this.joinGetRow(joiningName, userId);
             if(lastJoiningDoc){
-                return lastJoiningDoc.update({$set:{
+                var updateRes = lastJoiningDoc.update({$set:{
                     status: UniAnyJoin.STATUS_JOINED,
                     acceptorId: userId
                 }});
+                _runCallback.call(this, 'onJoin', joiningName, lastJoiningDoc.findSelf(), userId);
+                return updateRes;
             }
-            return UniAnyJoin.insert({
+            var insertRes = UniAnyJoin.insert({
+                joiningName: joiningName,
                 subjectId: this._id,
                 subjectCollectionName: collection._name,
                 possessorId: userId._id,
@@ -110,66 +134,72 @@ UniAnyJoin._addServerActions = function(collection){
                 originatorId: userId,
                 acceptorId: userId
             });
+
+            _runCallback.call(this, 'onJoin', joiningName, UniAnyJoin.findOne(insertRes), userId);
+            return insertRes;
         },
 
-        changeJoinPolicy: function(type, user){
+        joinChangePolicy: function(joiningName, type, user){
             user = UniUtils.getUniUserObject(user);
-            if(!this.canChangeJoinPolicy(user)){
+            if(!this.joinCanChangePolicy(joiningName, user)){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
             }
-            this._joiningPolicy = type;
-            return this.save('_joiningPolicy');
+            this['_joiningPolicy_'+joiningName] = type;
+            return this.save('_joiningPolicy_'+joiningName);
         },
-        leaveJoinedSubject: function(user, acceptor){
+
+        joinResign: function(joiningName, user, acceptor){
             user = UniUtils.getUniUserObject(user);
             acceptor = UniUtils.getUniUserObject(acceptor);
             if(!user){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:missingAcceptor'));
             }
-            if(!this.canLeaveUser(acceptor, user)){
+            if(!this.joinCanResign(joiningName, acceptor, user)){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
             }
-            var lastJoiningDoc = this.getJoiningRow(user._id);
+            var lastJoiningDoc = this.joinGetRow(joiningName, user._id);
             if(lastJoiningDoc){
-                return lastJoiningDoc.update({$set:{
+                var updateRes = lastJoiningDoc.update({$set:{
                     status: UniAnyJoin.STATUS_REJECTED,
                     acceptorId: acceptor._id
                 }});
+                _runCallback.call(this, 'onResign', joiningName, lastJoiningDoc.findSelf(), user);
+                return updateRes;
             }
         }
+    };
 
-
-    });
+    collection.helpers(helpers);
 };
 
 Meteor.methods({
-    'UniAnyJoin/sendJoinInvitation': function(collectionName, subjectId, userId){
+    'UniAnyJoin/joinSendInvitation': function(joiningName, collectionName, subjectId, userId){
         var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.sendJoinInvitation(userId, this.userId);
+        return subject.joinSendInvitation(joiningName, userId, this.userId);
     },
-    'UniAnyJoin/sendJoinRequest': function(collectionName, subjectId){
+    'UniAnyJoin/joinSendRequest': function(joiningName, collectionName, subjectId){
         var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.sendJoinRequest(this.userId, this.userId);
+        return subject.joinSendRequest(joiningName, this.userId, this.userId);
     },
-    'UniAnyJoin/acceptJoinRequest': function(collectionName, subjectId, forUserId){
+    'UniAnyJoin/joinAcceptRequest': function(joiningName, collectionName, subjectId, forUserId){
         var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.acceptJoinRequest(forUserId, this.userId);
+        return subject.joinAcceptRequest(joiningName, forUserId, this.userId);
     },
-    'UniAnyJoin/acceptJoinInvitation': function(collectionName, subjectId){
+    'UniAnyJoin/joinAcceptInvitation': function(joiningName, collectionName, subjectId){
         var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.acceptJoinInvitation(this.userId);
+        return subject.joinAcceptInvitation(joiningName, this.userId);
     },
-    'UniAnyJoin/join': function(collectionName, subjectId){
+    'UniAnyJoin/join': function(joiningName, collectionName, subjectId){
         var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.join(this.userId);
+        return subject.join(joiningName, this.userId);
     },
-    'UniAnyJoin/changeJoinPolicy': function(collectionName, subjectId, type){
+    'UniAnyJoin/joinChangePolicy': function(joiningName, collectionName, subjectId, type){
         var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.changeJoinPolicy(type, this.userId);
+        return subject.joinChangePolicy(joiningName, type, this.userId);
     },
-    'UniAnyJoin/leaveJoinedSubject': function(collectionName, subjectId, userId){
+    'UniAnyJoin/joinResign': function(joiningName, collectionName, subjectId, userId){
         var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.leaveJoinedSubject(userId, this.userId);
+        return subject.joinResign(joiningName, userId, this.userId);
     }
 });
 
@@ -181,4 +211,11 @@ var _getSubjectDocument = function(collectionName, subjectId){
         throw new Meteor.Error(403, i18n('anyJoin:errors:noSubject'));
     }
     return subject;
+};
+
+var _runCallback = function(callbackName, joiningName, insertRes){
+    var cb = UniUtils.get(this.getCollection(), '_joiningCallbacks.'+joiningName+'.'+callbackName);
+    if(_.isFunction(cb)){
+        cb.apply(this, Array.prototype.slice.call(arguments,1));
+    }
 };

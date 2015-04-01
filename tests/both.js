@@ -82,17 +82,17 @@ if(Meteor.isServer){
             UniUsers.insert({
                 username: 'test_anyjoin2',
                 emails: [{address: 'test_anyjoin2@test_anyjoin.vazco'}],
-                profile: {name: 'test anyjoin2'}
+                profile: {name: 'some user'}
             });
             UniUsers.insert({
                 username: 'test_anyjoin',
                 emails: [{address: 'test_anyjoin@test_anyjoin.vazco'}],
-                profile: {name: 'test anyjoin'}
+                profile: {name: 'owner user'}
             });
             UniUsers.insert({
                 username: 'test_anyjoin_admin',
                 emails: [{address: 'test_anyjoin3@test_anyjoin.vazco'}],
-                profile: {name: 'test admin'},
+                profile: {name: 'admin user'},
                 is_admin: true
             });
 
@@ -182,25 +182,13 @@ var relog = function(who){
     console.log('Logged as ', user._id, who);
 };
 
-var onErr = function(err, message){
-    if(!message){
-        message = '';
-    } else {
-        message =  ' - in  '+ message;
-    }
-    if(err){
-        test.isUndefined(err, (err.reason || err.message) + message);
-        cleanUpData(onClomplete, err);
-        console.error(err.message || err);
-        throw err;
-    }
-};
-
 Meteor.call('test_anyjoin_cleanup', function(){
+
     Tinytest.add('Universe Any Join - instances', function (test) {
-        UniAnyJoin.addJoinFunctionalityToCollection(testCollection);
-        test.instanceOf(UniAnyJoin.getSubjectCollection(testCollection._name), UniCollection);
         test.instanceOf(UniAnyJoin, UniCollection);
+        test.isTrue(_.isFunction(testCollection.attachAnyJoin), 'function exists');
+        testCollection.attachAnyJoin('test');
+        test.instanceOf(UniAnyJoin.getSubjectCollection(testCollection._name), UniCollection);
     });
 
     Tinytest.addAsync('Universe Any Join - attach helpers', function (test, onComplete) {
@@ -208,20 +196,19 @@ Meteor.call('test_anyjoin_cleanup', function(){
             var doc = testCollection.findOne({test:1});
             test.isTrue(_.isObject(doc), 'document "test:1" exist');
             _.each([
-                'getJoiningRow', 'isJoined', 'canJoinDirectly', 'canSendJoinInvitation',
-                'canSendJoinRequest', 'canAcceptJoinRequest', 'canChangeJoinPolicy', 'getJoinPolicy',
-                'isUserInvitedToJoin', 'isJoinRequestSent', 'canLeaveUser', 'sendJoinInvitation', 'sendJoinRequest',
-                'acceptJoinRequest', 'acceptJoinInvitation', 'join', 'changeJoinPolicy', 'leaveJoinedSubject'
+                'joinGetRow', 'joinIsJoined', 'joinCanJoinDirectly', 'joinCanSendInvitation',
+                'joinCanSendRequest', 'joinCanAcceptRequest', 'joinCanChangePolicy', 'joinGetPolicy',
+                'joinIsUserInvited', 'joinIsRequestSent', 'joinCanResign', 'joinSendInvitation', 'joinSendRequest',
+                'joinAcceptRequest', 'joinAcceptInvitation', 'join', 'joinChangePolicy', 'joinResign'
             ], function(m){
-                test.isTrue(_.isFunction(doc[m]), 'document helper exists');
+                test.isTrue(_.isFunction(doc[m]), 'document helper exists "'+m+'"');
             });
-            test.isFalse(doc.getJoiningRow(), 'document "test:1" exist');
-            test.isFalse(doc.isJoined(), 'document "test:1" not joined');
+            test.isFalse(doc.joinGetRow('test'), 'document "test:1" exist');
+            test.isFalse(doc.joinIsJoined('test'), 'document "test:1" not joined');
             cleanUpData(onComplete);
         });
 
     });
-
     Tinytest.addAsync('Universe Any Join - test helpers for some user', function (test, onClomplete) {
         prepareData(function () {
             var testNo = 2;
@@ -232,13 +219,197 @@ Meteor.call('test_anyjoin_cleanup', function(){
             var user = UniUsers.findOne({username: 'test_anyjoin'});
             test.isTrue(_.isObject(doc), 'document "test:' + testNo + '" exist');
             test.isTrue(_.isObject(user), 'user exist');
-            test.isFalse(doc.isJoined(user), 'document "test:' + testNo + '" not joined user');
-            test.isTrue(_.isString(doc.getJoinPolicy()), 'get Join Policy');
-            test.isFalse(doc.canChangeJoinPolicy(user), 'some user canChangeJoinPolicy');
-            test.isFalse(doc.canSendJoinInvitation(user), 'some user canSendJoinInvitation');
-            test.isFalse(doc.canAcceptJoinRequest(user), 'some user canAcceptJoinRequest');
-            test.isFalse(doc.isUserInvitedToJoin(user), 'some user isUserInvitedToJoin');
-            test.isFalse(doc.isJoinRequestSent(user), 'some user isJoinRequestSent');
+            test.isFalse(doc.joinIsJoined('test',user), 'document "test:' + testNo + '" not joined user');
+            test.isTrue(_.isString(doc.joinGetPolicy('test')), 'get Join Policy');
+            test.isFalse(doc.joinCanChangePolicy('test',user), 'some user joinCanChangePolicy');
+            test.isFalse(doc.joinCanSendInvitation('test',user), 'some user joinCanSendInvitation');
+            test.isFalse(doc.joinCanAcceptRequest('test',user), 'some user joinCanAcceptRequest');
+            test.isFalse(doc.joinIsUserInvited('test',user), 'some user joinIsUserInvited');
+            test.isFalse(doc.joinIsRequestSent('test',user), 'some user joinIsRequestSent');
+            cleanUpData(onClomplete);
+        });
+    });
+
+    Tinytest.addAsync('Universe Any Join - test callback - negative', function (test, onClomplete) {
+        prepareData(function () {
+            var testNo = 2;
+            if (Meteor.isServer) {
+                testNo = 3;
+            }
+            testCollection.attachAnyJoin('negative_tests', {
+                canResign: function(joiningName, user, acceptor){
+                    test.equal(joiningName, 'negative_tests', 'check joiningName in canResign');
+                    test.isTrue(_.isObject(user), 'check if is user in canResign');
+                    test.isTrue(_.isObject(acceptor), 'check if is acceptor in canResign');
+                    return false;
+                },
+                canChangePolicy: function(joiningName, user){
+                    test.equal(joiningName, 'negative_tests', 'check joiningName in canChangePolicy');
+                    test.isTrue(_.isObject(user), 'check if is user');
+                    return false;
+                },
+                canAcceptRequest: function(joiningName, acceptor){
+                    test.equal(joiningName, 'negative_tests', 'check joiningName in canAcceptRequest');
+                    test.isTrue(_.isObject(acceptor), 'check if is acceptor in canAcceptRequest');
+                    return false;
+                },
+                canSendRequest: function(joiningName, user){
+                    test.equal(joiningName, 'negative_tests', 'check joiningName in canSendRequest');
+                    test.isTrue(_.isObject(user), 'check if is user in canSendRequest');
+                    return false;
+                },
+                canSendInvitation: function(joiningName, user){
+                    test.equal(joiningName, 'negative_tests', 'check joiningName in canSendInvitation');
+                    test.isTrue(_.isObject(user), 'check if is user in canSendInvitation');
+                    return false;
+                },
+                canJoinDirectly: function(joiningName, userId){
+                    test.equal(joiningName, 'negative_tests', 'check joiningName in canJoinDirectly');
+                    test.isTrue(_.isString(userId), 'check if is userId in canJoinDirectly');
+                    return false;
+                },
+                isJoined: function(joiningName, userId){
+                    test.equal(joiningName, 'negative_tests', 'check joiningName in isJoined');
+                    test.isTrue(_.isString(userId), 'check if is userId in isJoined');
+                    return false;
+                }
+            });
+            var doc = testCollection.findOne({test: testNo});
+            var user = UniUsers.findOne({username: 'test_anyjoin2'});
+            test.isFalse(doc.joinIsJoined('negative_tests',user), 'callback - is joined');
+            test.isFalse(doc.joinCanChangePolicy('negative_tests' ,user), 'callback - joinCanChangePolicy');
+            test.isFalse(doc.joinCanChangePolicy('negative_tests',user), 'callback - joinCanChangePolicy');
+            test.isFalse(doc.joinCanSendInvitation('negative_tests',user), 'callback - joinCanSendInvitation');
+            test.isFalse(doc.joinCanAcceptRequest('negative_tests',user), 'callback - joinCanAcceptRequest');
+            test.isFalse(doc.joinCanJoinDirectly('negative_tests',user), 'callback - joinCanJoinDirectly');
+            test.isFalse(doc.joinCanSendRequest('negative_tests',user), 'callback - joinCanAcceptRequest');
+
+            cleanUpData(onClomplete);
+        });
+    });
+
+    Tinytest.addAsync('Universe Any Join - test callback - positive', function (test, onClomplete) {
+        prepareData(function () {
+            var testNo = 2;
+            if (Meteor.isServer) {
+                testNo = 3;
+            }
+            var isJoined = true;
+            testCollection.attachAnyJoin('positive_tests', {
+                canResign: function(joiningName){
+                    test.equal(joiningName, 'positive_tests', 'check joiningName in canResign');
+                    return true;
+                },
+                canChangePolicy: function(joiningName){
+                    test.equal(joiningName, 'positive_tests', 'check joiningName in canChangePolicy');
+                    return true;
+                },
+                canAcceptRequest: function(joiningName){
+                    test.equal(joiningName, 'positive_tests', 'check joiningName in canAcceptRequest');
+                    return true;
+                },
+                canSendRequest: function(joiningName){
+                    test.equal(joiningName, 'positive_tests', 'check joiningName in canSendRequest');
+                    return true;
+                },
+                canSendInvitation: function(joiningName){
+                    test.equal(joiningName, 'positive_tests', 'check joiningName in canSendInvitation');
+                    return true;
+                },
+                canJoinDirectly: function(joiningName){
+                    test.equal(joiningName, 'positive_tests', 'check joiningName in canJoinDirectly');
+                    return true;
+                },
+                isJoined: function(joiningName){
+                    test.equal(joiningName, 'positive_tests', 'check joiningName in isJoined');
+                    return isJoined;
+                }
+            });
+            var doc = testCollection.findOne({test: testNo});
+            var user = UniUsers.findOne({username: 'test_anyjoin2'});
+            test.isTrue(doc.joinIsJoined('positive_tests',user), 'callback - is joined');
+            test.isTrue(doc.joinCanResign('positive_tests', user, user), 'callback - joinCanResign');
+            isJoined = false;
+            test.isTrue(doc.joinCanChangePolicy('positive_tests',user), 'callback - joinCanChangePolicy');
+            test.isTrue(doc.joinCanSendInvitation('positive_tests',user), 'callback - joinCanSendInvitation');
+            test.isTrue(doc.joinCanAcceptRequest('positive_tests',user), 'callback - joinCanAcceptRequest');
+            test.isTrue(doc.joinCanJoinDirectly('positive_tests',user), 'callback - joinCanJoinDirectly');
+            test.isTrue(doc.joinCanSendRequest('positive_tests',user), 'callback - joinCanSendRequest');
+
+
+            if(Meteor.isServer){
+                var doc = testCollection.findOne({test: 1});
+                var owner = UniUsers.findOne({username: 'test_anyjoin'});
+                var admin = UniUsers.findOne({username: 'test_anyjoin_admin'});
+                doc.ownerId = owner._id;
+                doc.save('ownerId');
+                var testedCallback = {
+                    onInvitation: false,
+                    onRequest: false,
+                    onAcceptRequest: false,
+                    onAcceptInvitation: false,
+                    onJoin: false,
+                    onResign: false
+                };
+                testCollection.attachAnyJoin('server_cb_tests', {
+                    onInvitation: function(joiningName, UniAnyJoinDocument, toUser, originator){
+                        test.equal(joiningName, 'server_cb_tests', 'check joiningName in onInvitation');
+                        test.isTrue(UniAnyJoinDocument && UniAnyJoinDocument instanceof UniCollection.UniDoc, 'is doc instanceof UniCollection.UniDoc in onInvitation');
+                        test.isTrue(_.isObject(toUser), 'check if is user in onInvitation');
+                        test.isTrue(_.isObject(originator), 'check if is user in onInvitation');
+                        testedCallback.onInvitation = true;
+                    },
+                    onRequest: function(joiningName, UniAnyJoinDocument, fromUser, originatorId){
+                        test.equal(joiningName, 'server_cb_tests', 'check joiningName in onRequest');
+                        test.isTrue(UniAnyJoinDocument && UniAnyJoinDocument instanceof UniCollection.UniDoc, 'is doc instanceof UniCollection.UniDoc in onRequest');
+                        test.isTrue(_.isObject(fromUser), 'check if is user in onRequest');
+                        test.isTrue(_.isString(originatorId), 'check if is user in onRequest');
+                        testedCallback.onRequest = true;
+                    },
+                    onAcceptRequest: function(joiningName, UniAnyJoinDocument, fromUser, acceptor){
+                        test.equal(joiningName, 'server_cb_tests', 'check joiningName in onAcceptRequest');
+                        test.isTrue(UniAnyJoinDocument && UniAnyJoinDocument instanceof UniCollection.UniDoc, 'is doc instanceof UniCollection.UniDoc in onAcceptRequest');
+                        test.isTrue(_.isObject(fromUser), 'check if is user in onAcceptRequest');
+                        test.isTrue(_.isObject(acceptor), 'check if is user in onAcceptRequest');
+                        testedCallback.onAcceptRequest = true;
+                    },
+                    onAcceptInvitation: function(joiningName, UniAnyJoinDocument, toUserId){
+                        test.equal(joiningName, 'server_cb_tests', 'check joiningName in onAcceptInvitation');
+                        test.isTrue(UniAnyJoinDocument && UniAnyJoinDocument instanceof UniCollection.UniDoc, 'is doc instanceof UniCollection.UniDoc in onAcceptInvitation');
+                        test.isTrue(_.isString(toUserId), 'check if is user in onAcceptInvitation');
+                        testedCallback.onAcceptInvitation = true;
+                    },
+                    onJoin: function(joiningName, UniAnyJoinDocument, userId){
+                        test.equal(joiningName, 'server_cb_tests', 'check joiningName in onJoin');
+                        test.isTrue(UniAnyJoinDocument && UniAnyJoinDocument instanceof UniCollection.UniDoc, 'is doc instanceof UniCollection.UniDoc in onJoin');
+                        test.isTrue(_.isString(userId), 'check if is user in onJoin');
+                        testedCallback.onJoin = true;
+                    },
+                    onResign: function(joiningName, UniAnyJoinDocument, user){
+                        test.equal(joiningName, 'server_cb_tests', 'check joiningName in onResign');
+                        test.isTrue(UniAnyJoinDocument && UniAnyJoinDocument instanceof UniCollection.UniDoc, 'is doc instanceof UniCollection.UniDoc in onResign');
+                        test.isTrue(_.isObject(user), 'check if is user in onResign');
+                        testedCallback.onResign = true;
+                    },
+                    canJoinDirectly: function(){
+                        return true;
+                    }
+                });
+                doc.joinChangePolicy('server_cb_tests',UniAnyJoin.TYPE_JOIN_REQUEST, owner);
+                doc.joinSendInvitation('server_cb_tests',admin, owner);
+                doc.joinAcceptInvitation('server_cb_tests',admin);
+                doc.joinResign('server_cb_tests',admin, admin);
+                doc.joinSendRequest('server_cb_tests', admin, admin);
+                doc.joinAcceptRequest('server_cb_tests', admin, owner);
+                doc.joinResign('server_cb_tests',admin, admin);
+                doc.joinChangePolicy('server_cb_tests',UniAnyJoin.TYPE_JOIN_OPEN, owner);
+                doc.join('server_cb_tests', admin);
+                //Checking if all callback was called
+                _.each(testedCallback, function(v, k){
+                    test.isTrue(v, 'check '+k);
+                });
+
+            }
             cleanUpData(onClomplete);
         });
     });
@@ -253,66 +424,66 @@ Meteor.call('test_anyjoin_cleanup', function(){
                 doc.ownerId = owner._id;
                 doc.save('ownerId');
                 //admin test
-                test.isTrue(doc.canChangeJoinPolicy(admin), 'owner canChangeJoinPolicy');
-                test.isTrue(doc.canSendJoinInvitation(admin), 'owner canSendJoinInvitation');
-                test.isTrue(doc.canAcceptJoinRequest(admin), 'owner canAcceptJoinRequest');
+                test.isTrue(doc.joinCanChangePolicy('test',admin), 'owner joinCanChangePolicy');
+                test.isTrue(doc.joinCanSendInvitation('test',admin), 'owner joinCanSendInvitation');
+                test.isTrue(doc.joinCanAcceptRequest('test',admin), 'owner joinCanAcceptRequest');
                 //owner test
-                test.isTrue(doc.canChangeJoinPolicy(owner), 'owner canChangeJoinPolicy');
-                test.isTrue(doc.canSendJoinInvitation(owner), 'owner canSendJoinInvitation');
-                test.isTrue(doc.canAcceptJoinRequest(owner), 'owner canAcceptJoinRequest');
+                test.isTrue(doc.joinCanChangePolicy('test',owner), 'owner joinCanChangePolicy');
+                test.isTrue(doc.joinCanSendInvitation('test',owner), 'owner joinCanSendInvitation');
+                test.isTrue(doc.joinCanAcceptRequest('test',owner), 'owner joinCanAcceptRequest');
 
-                doc.changeJoinPolicy(UniAnyJoin.TYPE_JOIN_INVITATION, owner);
-                test.equal(doc.getJoinPolicy(), UniAnyJoin.TYPE_JOIN_INVITATION, 'changing policy - join invitation');
-                test.isTrue(doc.canSendJoinInvitation(owner), 'owner canSendJoinInvitation');
-                test.isFalse(doc.canSendJoinInvitation(someUser), 'owner canSendJoinInvitation');
-                test.isFalse(doc.canAcceptJoinRequest(someUser), 'someUser canAcceptJoinRequest');
-                test.isFalse(doc.canJoinDirectly(someUser), 'someUser canJoinDirectly');
-                test.isFalse(doc.isJoined(someUser), 'isn\'t joined');
+                doc.joinChangePolicy('test',UniAnyJoin.TYPE_JOIN_INVITATION, owner);
+                test.equal(doc.joinGetPolicy('test'), UniAnyJoin.TYPE_JOIN_INVITATION, 'changing policy - join invitation');
+                test.isTrue(doc.joinCanSendInvitation('test',owner), 'owner joinCanSendInvitation');
+                test.isFalse(doc.joinCanSendInvitation('test',someUser), 'owner joinCanSendInvitation');
+                test.isFalse(doc.joinCanAcceptRequest('test',someUser), 'someUser joinCanAcceptRequest');
+                test.isFalse(doc.joinCanJoinDirectly('test',someUser), 'someUser joinCanJoinDirectly');
+                test.isFalse(doc.joinIsJoined('test',someUser), 'isn\'t joined');
                 test.isTrue(isException(function(){
-                    doc.join(someUser);
+                    doc.join('test',someUser);
                 }), 'someUser exception when try join');
-                test.isFalse(doc.isJoined(someUser), 'isn\'t joined');
-                doc.sendJoinInvitation(someUser, owner);
-                var lastJoiningDoc = doc.getJoiningRow(someUser);
+                test.isFalse(doc.joinIsJoined('test',someUser), 'isn\'t joined');
+                doc.joinSendInvitation('test',someUser, owner);
+                var lastJoiningDoc = doc.joinGetRow('test',someUser);
                 test.equal(lastJoiningDoc.status, UniAnyJoin.STATUS_INVITED, 'someUser is invited by owner');
-                doc.acceptJoinInvitation(someUser);
-                test.isTrue(doc.isJoined(someUser), 'is joined');
-                doc.leaveJoinedSubject(someUser, owner);
-                test.isFalse(doc.isJoined(someUser), 'isn\'t joined');
+                doc.joinAcceptInvitation('test',someUser);
+                test.isTrue(doc.joinIsJoined('test',someUser), 'is joined');
+                doc.joinResign('test',someUser, owner);
+                test.isFalse(doc.joinIsJoined('test',someUser), 'isn\'t joined');
                 //send request
-                doc.changeJoinPolicy(UniAnyJoin.TYPE_JOIN_REQUEST, admin);
-                test.equal(doc.getJoinPolicy(), UniAnyJoin.TYPE_JOIN_REQUEST, 'changing policy - join request');
-                doc.sendJoinRequest(someUser, someUser);
-                test.isFalse(doc.canJoinDirectly(someUser), 'someUser canJoinDirectly');
-                test.isTrue(doc.isJoinRequestSent(someUser), 'is join request sent');
-                test.isFalse(doc.isJoined(someUser), 'isn\'t joined');
-                if(doc.canLeaveUser(someUser, someUser)){
-                    doc.leaveJoinedSubject(someUser, someUser);
-                    test.isFalse(doc.isJoinRequestSent(someUser), 'is join request sent');
+                doc.joinChangePolicy('test',UniAnyJoin.TYPE_JOIN_REQUEST, admin);
+                test.equal(doc.joinGetPolicy('test'), UniAnyJoin.TYPE_JOIN_REQUEST, 'changing policy - join request');
+                doc.joinSendRequest('test',someUser, someUser);
+                test.isFalse(doc.joinCanJoinDirectly('test',someUser), 'someUser joinCanJoinDirectly');
+                test.isTrue(doc.joinIsRequestSent('test',someUser), 'is join request sent');
+                test.isFalse(doc.joinIsJoined('test',someUser), 'isn\'t joined');
+                if(doc.joinCanResign('test',someUser, someUser)){
+                    doc.joinResign('test',someUser, someUser);
+                    test.isFalse(doc.joinIsRequestSent('test',someUser), 'is join request sent');
                 } else{
                     try{
-                        doc.leaveJoinedSubject(someUser, someUser);
+                        doc.joinResign('test',someUser, someUser);
                     } catch(e){}
-                    test.isTrue(doc.isJoinRequestSent(someUser), 'is join request sent');
+                    test.isTrue(doc.joinIsRequestSent('test',someUser), 'is join request sent');
                 }
-                doc.leaveJoinedSubject(someUser, admin);
-                test.isFalse(doc.isJoinRequestSent(someUser), 'is join request sent');
+                doc.joinResign('test',someUser, admin);
+                test.isFalse(doc.joinIsRequestSent('test',someUser), 'is join request sent');
 
                 //open to join
-                doc.changeJoinPolicy(UniAnyJoin.TYPE_JOIN_OPEN, owner);
-                test.equal(doc.getJoinPolicy(), UniAnyJoin.TYPE_JOIN_OPEN, 'changing policy - open join');
-                test.isTrue(doc.canJoinDirectly(someUser), 'someUser canJoinDirectly');
-                doc.join(someUser);
-                test.isTrue(doc.isJoined(someUser), 'is joined');
-                test.isTrue(doc.canLeaveUser(admin, someUser), 'Admin can kick out some user');
-                if(doc.canLeaveUser(someUser, someUser)){
-                    doc.leaveJoinedSubject(someUser, someUser);
-                    test.isFalse(doc.isJoined(someUser), 'is join request sent');
+                doc.joinChangePolicy('test',UniAnyJoin.TYPE_JOIN_OPEN, owner);
+                test.equal(doc.joinGetPolicy('test'), UniAnyJoin.TYPE_JOIN_OPEN, 'changing policy - open join');
+                test.isTrue(doc.joinCanJoinDirectly('test',someUser), 'someUser joinCanJoinDirectly');
+                doc.join('test',someUser);
+                test.isTrue(doc.joinIsJoined('test',someUser), 'is joined');
+                test.isTrue(doc.joinCanResign('test',admin, someUser), 'Admin can kick out some user');
+                if(doc.joinCanResign('test',someUser, someUser)){
+                    doc.joinResign('test',someUser, someUser);
+                    test.isFalse(doc.joinIsJoined('test',someUser), 'is join request sent');
                 } else{
                     try{
-                        doc.leaveJoinedSubject(someUser, someUser);
+                        doc.joinResign('test',someUser, someUser);
                     } catch(e){}
-                    test.isTrue(doc.isJoined(someUser), 'is joined');
+                    test.isTrue(doc.joinIsJoined('test',someUser), 'is joined');
                 }
                 cleanUpData(onClomplete);
             });
@@ -326,68 +497,83 @@ Meteor.call('test_anyjoin_cleanup', function(){
                 var admin = UniUsers.findOne({username: 'test_anyjoin_admin'});
                 doc.ownerId = owner._id;
                 doc.save('ownerId');
+
+                var onErr = function(err, message){
+                    if(!message){
+                        message = '';
+                    } else {
+                        message =  ' - in  '+ message;
+                    }
+                    if(err){
+                        test.isUndefined(err, (err.reason || err.message) + message);
+                        cleanUpData(onClomplete, err);
+                        console.error(err.message || err);
+                        throw err;
+                    }
+                };
+
                 //admin test
-                test.isTrue(doc.canChangeJoinPolicy(admin), 'owner canChangeJoinPolicy');
-                test.isTrue(doc.canSendJoinInvitation(admin), 'owner canSendJoinInvitation');
-                test.isTrue(doc.canAcceptJoinRequest(admin), 'owner canAcceptJoinRequest');
+                test.isTrue(doc.joinCanChangePolicy('test',admin), 'owner joinCanChangePolicy');
+                test.isTrue(doc.joinCanSendInvitation('test',admin), 'owner joinCanSendInvitation');
+                test.isTrue(doc.joinCanAcceptRequest('test',admin), 'owner joinCanAcceptRequest');
                 //owner test
-                test.isTrue(doc.canChangeJoinPolicy(owner), 'owner canChangeJoinPolicy');
-                test.isTrue(doc.canSendJoinInvitation(owner), 'owner canSendJoinInvitation');
-                test.isTrue(doc.canAcceptJoinRequest(owner), 'owner canAcceptJoinRequest');
+                test.isTrue(doc.joinCanChangePolicy('test',owner), 'owner joinCanChangePolicy');
+                test.isTrue(doc.joinCanSendInvitation('test',owner), 'owner joinCanSendInvitation');
+                test.isTrue(doc.joinCanAcceptRequest('test',owner), 'owner joinCanAcceptRequest');
 
 
-                doc.changeJoinPolicy(UniAnyJoin.TYPE_JOIN_INVITATION, function(err){
-                    onErr(err, 'changeJoinPolicy TYPE_JOIN_INVITATION');
+                doc.joinChangePolicy('test',UniAnyJoin.TYPE_JOIN_INVITATION, function(err){
+                    onErr(err, 'joinChangePolicy TYPE_JOIN_INVITATION');
                     doc.refresh();
-                    test.equal(doc.getJoinPolicy(), UniAnyJoin.TYPE_JOIN_INVITATION, 'changing policy - join invitation');
-                    test.isTrue(doc.canSendJoinInvitation(owner), 'owner canSendJoinInvitation');
-                    test.isFalse(doc.canSendJoinInvitation(someUser), 'owner canSendJoinInvitation');
-                    test.isFalse(doc.canAcceptJoinRequest(someUser), 'someUser canAcceptJoinRequest');
-                    test.isFalse(doc.canJoinDirectly(someUser), 'someUser canJoinDirectly');
-                    test.isFalse(doc.isJoined(someUser), 'isn\'t joined');
+                    test.equal(doc.joinGetPolicy('test'), UniAnyJoin.TYPE_JOIN_INVITATION, 'changing policy - join invitation');
+                    test.isTrue(doc.joinCanSendInvitation('test',owner), 'owner joinCanSendInvitation');
+                    test.isFalse(doc.joinCanSendInvitation('test',someUser), 'owner joinCanSendInvitation');
+                    test.isFalse(doc.joinCanAcceptRequest('test',someUser), 'someUser joinCanAcceptRequest');
+                    test.isFalse(doc.joinCanJoinDirectly('test',someUser), 'someUser joinCanJoinDirectly');
+                    test.isFalse(doc.joinIsJoined('test',someUser), 'isn\'t joined');
                     test.isTrue(_.isObject(someUser), 'Object of some user');
-                    doc.sendJoinInvitation(someUser, function(err){
-                        onErr(err, 'sendJoinInvitation');
+                    doc.joinSendInvitation('test',someUser, function(err){
+                        onErr(err, 'joinSendInvitation');
                         doc.refresh();
-                        var lastJoiningDoc = doc.getJoiningRow(someUser);
+                        var lastJoiningDoc = doc.joinGetRow('test',someUser);
                         test.equal(lastJoiningDoc.status, UniAnyJoin.STATUS_INVITED, 'someUser is invited by owner');
                         doc.refresh();
                         relog('someUser');
-                        doc.acceptJoinInvitation(function(err){
-                            onErr(err, 'acceptJoinInvitation');
+                        doc.joinAcceptInvitation('test',function(err){
+                            onErr(err, 'joinAcceptInvitation');
                             doc.refresh();
-                            test.isTrue(doc.isJoined(someUser), 'is joined');
-                            doc.leaveJoinedSubject(someUser, function(err){
-                                onErr(err, 'leaveJoinedSubject');
+                            test.isTrue(doc.joinIsJoined('test',someUser), 'is joined');
+                            doc.joinResign('test',someUser, function(err){
+                                onErr(err, 'joinResign');
                                 relog('owner');
                                 doc.refresh();
-                                test.isFalse(doc.isJoined(someUser), 'isn\'t joined');
-                                doc.changeJoinPolicy(UniAnyJoin.TYPE_JOIN_REQUEST, function(err){
-                                    onErr(err, 'changeJoinPolicy TYPE_JOIN_REQUEST');
+                                test.isFalse(doc.joinIsJoined('test',someUser), 'isn\'t joined');
+                                doc.joinChangePolicy('test',UniAnyJoin.TYPE_JOIN_REQUEST, function(err){
+                                    onErr(err, 'joinChangePolicy TYPE_JOIN_REQUEST');
                                     doc.refresh();
-                                    test.equal(doc.getJoinPolicy(), UniAnyJoin.TYPE_JOIN_REQUEST, 'changing policy - join request');
+                                    test.equal(doc.joinGetPolicy('test'), UniAnyJoin.TYPE_JOIN_REQUEST, 'changing policy - join request');
                                     relog('someUser');
-                                    doc.sendJoinRequest(function(err){
-                                        onErr(err, 'sendJoinRequest');
+                                    doc.joinSendRequest('test',function(err){
+                                        onErr(err, 'joinSendRequest');
                                         doc.refresh();
-                                        test.isFalse(doc.canJoinDirectly(someUser), 'someUser canJoinDirectly');
-                                        test.isTrue(doc.isJoinRequestSent(someUser), 'is join request sent');
-                                        test.isFalse(doc.isJoined(someUser), 'isn\'t joined');
+                                        test.isFalse(doc.joinCanJoinDirectly('test',someUser), 'someUser joinCanJoinDirectly');
+                                        test.isTrue(doc.joinIsRequestSent('test',someUser), 'is join request sent');
+                                        test.isFalse(doc.joinIsJoined('test',someUser), 'isn\'t joined');
                                         relog('admin');
-                                        doc.leaveJoinedSubject(someUser, function(err){
-                                            onErr(err, 'leaveJoinedSubject');
+                                        doc.joinResign('test',someUser, function(err){
+                                            onErr(err, 'joinResign');
                                             doc.refresh();
-                                            test.isFalse(doc.isJoinRequestSent(someUser), 'is join request sent');
-                                            doc.changeJoinPolicy(UniAnyJoin.TYPE_JOIN_OPEN, function(err){
-                                                onErr(err, 'changeJoinPolicy TYPE_JOIN_OPEN');
+                                            test.isFalse(doc.joinIsRequestSent('test',someUser), 'is join request sent');
+                                            doc.joinChangePolicy('test',UniAnyJoin.TYPE_JOIN_OPEN, function(err){
+                                                onErr(err, 'joinChangePolicy TYPE_JOIN_OPEN');
                                                 relog('someUser');
                                                 doc.refresh();
-                                                test.equal(doc.getJoinPolicy(), UniAnyJoin.TYPE_JOIN_OPEN, 'changing policy - open join');
-                                                test.isTrue(doc.canJoinDirectly(someUser), 'someUser canJoinDirectly');
-                                                doc.join(function(err){
+                                                test.equal(doc.joinGetPolicy('test'), UniAnyJoin.TYPE_JOIN_OPEN, 'changing policy - open join');
+                                                test.isTrue(doc.joinCanJoinDirectly('test',someUser), 'someUser joinCanJoinDirectly');
+                                                doc.join('test',function(err){
                                                     onErr(err, 'join');
                                                     doc.refresh();
-                                                    test.isTrue(doc.isJoined(someUser), 'is joined');
+                                                    test.isTrue(doc.joinIsJoined('test',someUser), 'is joined');
                                                     cleanUpData(onClomplete);
                                                 });
                                             });

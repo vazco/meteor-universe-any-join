@@ -27,6 +27,7 @@ Package.onUse(function (api) {
 
     api.add_files([
         'UniAnyJoin.js',
+        'UniCollectionExtension.js',
         'localization/en.js'
     ]);
 
@@ -65,8 +66,10 @@ Package.onTest(function (api) {
     api.use([
         'templating'
     ], 'client');
+
     api.add_files([
         'UniAnyJoin.js',
+        'UniCollectionExtension.js',
         'localization/en.js'
     ]);
 
