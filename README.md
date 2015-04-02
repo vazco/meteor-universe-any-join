@@ -1,18 +1,19 @@
-# meteor-universe-any-join
+# Universe Any Join
 
 ## Server side callbacks
-onInvitation(joiningName, UniAnyJoinDocument, toUser, originator)
-onRequest(joiningName, UniAnyJoinDocument, fromUser, originatorId)
-onAcceptRequest(joiningName, UniAnyJoinDocument, fromUser, acceptor)
-onAcceptInvitation(joiningName, UniAnyJoinDocument, toUserId)
-onJoin(joiningName, UniAnyJoinDocument, userId)
-onResign(joiningName, UniAnyJoinDocument, user)
+- **onInvitation**(joiningName, uniAnyJoinDocument, toUser, originator)
+- **onRequest**(joiningName, uniAnyJoinDocument, fromUser, originatorId)
+- **onAcceptRequest**(joiningName, uniAnyJoinDocument, fromUser, acceptor)
+- **onAcceptInvitation**(joiningName, uniAnyJoinDocument, toUserId)
+- **onJoin**(joiningName, uniAnyJoinDocument, userId)
+- **onResign**(joiningName, uniAnyJoinDocument, user)
+- **onGetDefaultPolicy**(joiningName, collection)
 
 ## Both sides access control
-canResign(joiningName, user, acceptor)
-canChangePolicy(joiningName, user)
-canAcceptRequest(joiningName, acceptor)
-canSendRequest(joiningName, user)
-canSendInvitation(joiningName, user)
-canJoinDirectly(joiningName, userId)
-isJoined(joiningName, userId)
+- **canResign**(joiningName, user, acceptor)
+- **canChangePolicy**(joiningName, user)
+- **canAcceptRequest**(joiningName, acceptor)
+- **canSendRequest**(joiningName, user)
+- **canSendInvitation**(joiningName, user)
+- **canJoinDirectly**(joiningName, userId)
+- **isJoined**(joiningName, userId)

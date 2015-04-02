@@ -2,6 +2,14 @@
 
 UniAnyJoin._addServerActions = function(collection){
     var helpers = {
+        /**
+         * Sends Invitation to joining for "toUser" by "originator"
+         * @memberof UniCollection.UniDoc#
+         * @param joiningName {String} kind of joining
+         * @param toUser {UniUsers.UniUser|String} invitation receiver
+         * @param originator {UniUsers.UniUser|String} caller
+         * @returns {*}
+         */
         joinSendInvitation: function(joiningName, toUser, originator){
             toUser = UniUtils.getUniUserObject(toUser, true);
             originator = UniUtils.getUniUserObject(originator, true);
@@ -36,6 +44,14 @@ UniAnyJoin._addServerActions = function(collection){
             _runCallback.call(this, 'onInvitation', joiningName, UniAnyJoin.findOne(insertRes), toUser, originator);
             return insertRes;
         },
+        /**
+         * Sends joining request
+         * @memberof UniCollection.UniDoc#
+         * @param joiningName {String} kind of joining
+         * @param fromUser {UniUsers.UniUser|String} sender ( possessor )
+         * @param originatorId {UniUsers.UniUser|String} caller
+         * @returns {*}
+         */
         joinSendRequest: function(joiningName, fromUser, originatorId){
             fromUser = UniUtils.getUniUserObject(fromUser);
 
@@ -73,6 +89,14 @@ UniAnyJoin._addServerActions = function(collection){
             _runCallback.call(this, 'onRequest', joiningName, UniAnyJoin.findOne(insertRes), fromUser, originatorId);
             return insertRes;
         },
+        /**
+         * Accepts users request and join him to subject
+         * @memberof UniCollection.UniDoc#
+         * @param joiningName {String} kind of joining
+         * @param fromUser {UniUsers.UniUser|String} ( possessor )
+         * @param acceptor {UniUsers.UniUser|String} caller (admin, owner,...)
+         * @returns {*}
+         */
         joinAcceptRequest: function(joiningName, fromUser, acceptor){
             if(this.joinIsJoined(joiningName, fromUser)){
                 throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
@@ -98,6 +122,13 @@ UniAnyJoin._addServerActions = function(collection){
             _runCallback.call(this, 'onAcceptRequest', joiningName, lastJoiningDoc.findSelf(), fromUser, acceptor);
             return updateRes;
         },
+        /**
+         * Accepts invitation to joining
+         * @memberof UniCollection.UniDoc#
+         * @param joiningName {String} kind of joining
+         * @param toUserId {UniUsers.UniUser|String} ( possessor )
+         * @returns {*}
+         */
         joinAcceptInvitation: function(joiningName, toUserId){
             toUserId = UniUtils.getIdIfDocument(toUserId);
             var lastJoiningDoc = this.joinGetRow(joiningName, toUserId);
@@ -110,6 +141,13 @@ UniAnyJoin._addServerActions = function(collection){
                 return updateRes;
             }
         },
+        /**
+         * Joins to subject, if free to join
+         * @memberof UniCollection.UniDoc#
+         * @param joiningName {String} kind of joining
+         * @param userId {UniUsers.UniUser|String}
+         * @returns {*}
+         */
         join: function(joiningName, userId){
             userId = UniUtils.getIdIfDocument(userId) || UniUsers.getLoggedInId();
             if(!this.joinCanJoinDirectly(joiningName, userId)){
@@ -138,7 +176,17 @@ UniAnyJoin._addServerActions = function(collection){
             _runCallback.call(this, 'onJoin', joiningName, UniAnyJoin.findOne(insertRes), userId);
             return insertRes;
         },
-
+        /**
+         * Sets policy of joining, allowed types:
+         * UniAnyJoin.TYPE_JOIN_REQUEST,
+         * UniAnyJoin.TYPE_JOIN_INVITATION,
+         * UniAnyJoin.TYPE_JOIN_OPEN
+         * @memberof UniCollection.UniDoc#
+         * @param joiningName {String} kind of joining
+         * @param type one of UniAnyJoin.TYPE_JOIN_REQUEST, UniAnyJoin.TYPE_JOIN_INVITATION, UniAnyJoin.TYPE_JOIN_OPEN
+         * @param user {UniUsers.UniUser|String} caller
+         * @returns {*}
+         */
         joinChangePolicy: function(joiningName, type, user){
             user = UniUtils.getUniUserObject(user);
             if(!this.joinCanChangePolicy(joiningName, user)){
@@ -147,7 +195,14 @@ UniAnyJoin._addServerActions = function(collection){
             this['_joiningPolicy_'+joiningName] = type;
             return this.save('_joiningPolicy_'+joiningName);
         },
-
+        /**
+         * Resigns from joining, rejects user request or invitation
+         * @memberof UniCollection.UniDoc#
+         * @param joiningName {String} kind of joining
+         * @param user {UniUsers.UniUser|String} possessor of joining
+         * @param acceptor {UniUsers.UniUser|String} caller, who wants do that
+         * @returns {*}
+         */
         joinResign: function(joiningName, user, acceptor){
             user = UniUtils.getUniUserObject(user);
             acceptor = UniUtils.getUniUserObject(acceptor);

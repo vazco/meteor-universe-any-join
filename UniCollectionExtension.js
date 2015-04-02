@@ -1,17 +1,31 @@
 'use strict';
 
+/**
+ * Adds Any Join functionality to this collection.
+ * Notice: It is important to call this function after this.attachSchema if schema going to be attached.
+ * (Any Join doesn't need simple schema to work, but it has only support for this.)
+ * @param joiningName {String} Name of joining (Collection can have many joining types)
+ * @param cbs {{onInvitation,onRequest,onAcceptRequest,onAcceptInvitation,onJoin,onResign,onGetDefaultPolicy
+ * canResign,canChangePolicy,canAcceptRequest,canSendRequest,canSendInvitation,canJoinDirectly,isJoined}=}
+ */
 UniCollection.prototype.attachAnyJoin = function(joiningName, cbs){
     if(!(/^[a-z][a-zA-Z0-9_]*/.test(joiningName))){
         throw new Error('Joining name must start from lower case letter and contain the only alphanumeric chars');
     }
-    if(!_.isObject(this._joiningCallbacks)){
-        this._joiningCallbacks = {};
-    }
+
     cbs = cbs || {};
 
-    this._joiningCallbacks[joiningName] = cbs;
+    if(_.isObject(this._joiningCallbacks)){
+        this._joiningCallbacks[joiningName] = cbs;
+        UniAnyJoin._addToSchemaJoiningFields(this, joiningName);
+        //already initialized on this collection
+        return;
+    }
+
+    this._joiningCallbacks = {};
     UniAnyJoin._collections[this._name] = this;
-    _addToSchemaJoiningFields(this, joiningName);
+    //initialize helpers
+    UniAnyJoin._addToSchemaJoiningFields(this, joiningName);
     _addJoiningHelpersToDocument(this, joiningName);
     if(Meteor.isServer){
         UniAnyJoin._addServerActions(this, joiningName);
@@ -20,28 +34,57 @@ UniCollection.prototype.attachAnyJoin = function(joiningName, cbs){
     }
 };
 
-var _addToSchemaJoiningFields = function(collection, joiningName){
+UniAnyJoin._addToSchemaJoiningFields = function(collection, joiningName){
     if(collection.simpleSchema){
         var sObject;
         try{
             sObject = collection.simpleSchema().schema();
-        } catch(e){ console.warn('Collection "'+collection._name+'" has no simpleSchema'); }
+        } catch(e){ SimpleSchema.debug && console.log('Collection "'+collection._name+'" has no simpleSchema'); }
         var joiningPolicyPropertyName = '_joiningPolicy_'+joiningName;
+        var allowedValues = [
+            UniAnyJoin.TYPE_JOIN_REQUEST,
+            UniAnyJoin.TYPE_JOIN_INVITATION,
+            UniAnyJoin.TYPE_JOIN_OPEN
+        ];
         if(_.size(sObject) && !sObject[joiningPolicyPropertyName]){
             sObject[joiningPolicyPropertyName] = {
                 type: String,
-                allowedValues: [
-                    UniAnyJoin.TYPE_JOIN_REQUEST,
-                    UniAnyJoin.TYPE_JOIN_INVITATION,
-                    UniAnyJoin.TYPE_JOIN_OPEN],
+                allowedValues: allowedValues,
                 autoValue: function() {
-                    if (this.isInsert) {
-                        return this.value || UniAnyJoin.TYPE_JOIN_REQUEST;
+                    if (this.isInsert && Meteor.isServer) {
+                        var res;
+                        var cb = UniUtils.get(collection, '_joiningCallbacks.'+joiningName+'.onGetDefaultPolicy');
+                        if(_.isFunction(cb)){
+                            res = cb.apply(this, joiningName, collection);
+                        }
+                        return res || this.value || UniAnyJoin.TYPE_JOIN_REQUEST;
                     }
                 }
             };
             collection.attachSchema(new SimpleSchema(sObject));
+            return 'simpleSchema';
         }
+    }
+    if(Meteor.isServer){
+        //Providing support of default policy in situation, when simple schema wasn't attached
+        var insertFn = collection.insert;
+        collection.insert = function(){
+            if(typeof arguments[0] === 'object'){
+                var res;
+                var cb = UniUtils.get(collection, '_joiningCallbacks.'+joiningName+'.onGetDefaultPolicy');
+                if(_.isFunction(cb)){
+                    res = cb.apply(this, joiningName, collection);
+                }
+                arguments[0][joiningPolicyPropertyName] = res ||
+                UniUtils.get(arguments, '0.'+joiningPolicyPropertyName, UniAnyJoin.TYPE_JOIN_REQUEST);
+                if(!_.contains(allowedValues, arguments[0][joiningPolicyPropertyName])){
+                    throw new Meteor.Error(500, 'Not allowed type of joining!');
+                }
+            }
+            return insertFn.apply(this, arguments);
+        };
+
+        return 'insert';
     }
 };
 
@@ -49,9 +92,10 @@ var _addJoiningHelpersToDocument = function(collection){
 
     var helpers = {
         /**
+         * Gets document for passed arguments (joiningName, userId) for current subject (document)
          * @memberof UniCollection.UniDoc#
-         * @param joiningName
-         * @param userId
+         * @param joiningName {String} kind of joining
+         * @param userId {UniUsers.UniUser|String} user or user id , which concerns joining  ( possessor of joining )
          * @returns {UniCollection.UniDoc}
          */
         joinGetRow: function(joiningName, userId){
@@ -64,9 +108,10 @@ var _addJoiningHelpersToDocument = function(collection){
             }, {sort: {createdAt: -1}});
         },
         /**
+         * Checks if user is joined to current subject by joiningName
          * @memberof UniCollection.UniDoc#
-         * @param joiningName
-         * @param userId
+         * @param joiningName {String} kind of joining
+         * @param userId {UniUsers.UniUser|String} user or user id , which concerns joining  ( possessor of joining )
          * @returns {boolean}
          */
         joinIsJoined: function(joiningName, userId){
@@ -81,8 +126,8 @@ var _addJoiningHelpersToDocument = function(collection){
         /**
          *
          * @memberof UniCollection.UniDoc#
-         * @param joiningName
-         * @param userId
+         * @param joiningName {String} kind of joining
+         * @param userId {UniUsers.UniUser|String} user or user id , which concerns joining  ( possessor of joining )
          * @returns {boolean}
          */
         joinCanJoinDirectly: function(joiningName, userId){
@@ -102,8 +147,8 @@ var _addJoiningHelpersToDocument = function(collection){
         },
         /**
          * @memberof UniCollection.UniDoc#
-         * @param joiningName
-         * @param user
+         * @param joiningName {String} kind of joining
+         * @param user {UniUsers.UniUser|String} owner of subject or admin, ( caller )
          * @returns {boolean}
          */
         joinCanSendInvitation: function(joiningName, user){
@@ -119,8 +164,8 @@ var _addJoiningHelpersToDocument = function(collection){
         },
         /**
          * @memberof UniCollection.UniDoc#
-         * @param joiningName
-         * @param user
+         * @param joiningName {String} kind of joining
+         * @param user user or user id , which concerns joining  ( possessor of joining )
          * @returns {boolean}
          */
         joinCanSendRequest: function(joiningName, user){
@@ -136,8 +181,8 @@ var _addJoiningHelpersToDocument = function(collection){
         },
         /**
          * @memberof UniCollection.UniDoc#
-         * @param joiningName
-         * @param acceptor
+         * @param joiningName {String} kind of joining
+         * @param acceptor {UniUsers.UniUser|String} owner of subject or admin, ( caller )
          * @returns {boolean}
          */
         joinCanAcceptRequest: function(joiningName, acceptor){
@@ -150,8 +195,8 @@ var _addJoiningHelpersToDocument = function(collection){
         },
         /**
          * @memberof UniCollection.UniDoc#
-         * @param joiningName
-         * @param user
+         * @param joiningName {String} kind of joining
+         * @param user {UniUsers.UniUser|String} owner of subject or admin, ( caller )
          * @returns {boolean}
          */
         joinCanChangePolicy: function(joiningName, user){
@@ -164,7 +209,7 @@ var _addJoiningHelpersToDocument = function(collection){
         },
         /**
          * @memberof UniCollection.UniDoc#
-         * @param joiningName
+         * @param joiningName {String} kind of joining
          * @returns {string}
          */
         joinGetPolicy: function(joiningName){
@@ -172,8 +217,8 @@ var _addJoiningHelpersToDocument = function(collection){
         },
         /**
          * @memberof UniCollection.UniDoc#
-         * @param joiningName
-         * @param userId
+         * @param joiningName {String} kind of joining
+         * @param userId {UniUsers.UniUser|String} user or user id , which concerns joining  ( possessor of joining )
          * @returns {boolean}
          */
         joinIsUserInvited: function(joiningName, userId){
@@ -183,8 +228,8 @@ var _addJoiningHelpersToDocument = function(collection){
         },
         /**
          * @memberof UniCollection.UniDoc#
-         * @param joiningName
-         * @param userId
+         * @param joiningName {String} kind of joining
+         * @param userId {UniUsers.UniUser|String} user or user id , which concerns joining  ( possessor of joining )
          * @returns {boolean}
          */
         joinIsRequestSent: function(joiningName, userId){
@@ -194,9 +239,9 @@ var _addJoiningHelpersToDocument = function(collection){
         },
         /**
          * @memberof UniCollection.UniDoc#
-         * @param joiningName
-         * @param acceptor
-         * @param user
+         * @param joiningName {String} kind of joining
+         * @param acceptor {UniUsers.UniUser|String} owner of subject or admin, ( caller )
+         * @param user {UniUsers.UniUser|String} user or user id , which concerns joining  ( possessor of joining )
          * @returns {boolean}
          */
         joinCanResign: function(joiningName, acceptor, user){

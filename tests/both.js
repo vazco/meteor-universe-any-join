@@ -1,5 +1,7 @@
 'use strict';
 
+SimpleSchema.debug = true;
+
 var testCollection = new UniCollection('testCollection_anyjoin');
 
 testCollection.attachSchema(new SimpleSchema({

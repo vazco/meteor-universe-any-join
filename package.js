@@ -3,7 +3,7 @@
 Package.describe({
     name: 'vazco:universe-any-join',
     summary: 'join to any document',
-    version: '0.0.1'
+    version: '1.0.0'
 });
 
 Package.onUse(function (api) {
