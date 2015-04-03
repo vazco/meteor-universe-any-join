@@ -6,19 +6,21 @@ Package.describe({
     version: '1.0.0'
 });
 
-Package.onUse(function (api) {
-    api.versionsFrom('1.0.4');
+var apiUseCommon = [
+    'underscore',
+    'check',
+    'vazco:universe-utilities@1.0.4',
+    'vazco:universe-collection@1.0.6',
+    'vazco:universe-access@1.1.3',
+    'aldeed:simple-schema@1.3.2',
+    'aldeed:collection2@2.3.3',
+    'anti:i18n'
+];
 
-    api.use([
-        'underscore',
-        'check',
-        'aldeed:simple-schema@1.3.0',
-        'aldeed:collection2@2.3.2',
-        'vazco:universe-utilities@1.0.2',
-        'vazco:universe-collection@1.0.1',
-        'vazco:universe-access@1.0.5',
-        'anti:i18n'
-    ]);
+Package.onUse(function (api) {
+    api.versionsFrom('METEOR@1.0.4');
+
+    api.use(apiUseCommon);
 
     api.use([
         'templating'
@@ -51,17 +53,7 @@ Package.onTest(function (api) {
     api.use('tinytest');
     api.use('test-helpers');
     api.use('accounts-base');
-    api.use([
-        'underscore',
-        'check',
-        'aldeed:simple-schema@1.3.0',
-        'aldeed:collection2@2.3.2',
-        'vazco:universe-utilities@1.0.2',
-        'vazco:universe-collection@1.0.1',
-        'vazco:universe-access@1.0.5',
-        'anti:i18n'
-    ]);
-
+    api.use(apiUseCommon);
 
     api.use([
         'templating'
@@ -86,8 +78,8 @@ Package.onTest(function (api) {
     api.export('UniAnyJoin');
 
     api.imply([
-        'vazco:universe-collection@1.0.1',
-        'vazco:universe-utilities@1.0.2',
+        'vazco:universe-collection@1.0.6',
+        'vazco:universe-utilities@1.0.4',
         'accounts-base'
     ]);
     api.addFiles('tests/both.js');

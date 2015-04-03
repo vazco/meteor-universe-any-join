@@ -47,6 +47,7 @@ UniAnyJoin._addToSchemaJoiningFields = function(collection, joiningName){
             UniAnyJoin.TYPE_JOIN_OPEN
         ];
         if(_.size(sObject) && !sObject[joiningPolicyPropertyName]){
+            //adds configuration of policy, field to schema
             sObject[joiningPolicyPropertyName] = {
                 type: String,
                 allowedValues: allowedValues,
@@ -124,7 +125,8 @@ var _addJoiningHelpersToDocument = function(collection){
             return doc && doc.status === UniAnyJoin.STATUS_JOINED;
         },
         /**
-         *
+         * Checks if user can join directly (free for join or user is admin)
+         * logic can be changed by callback 'canJoinDirectly'
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
          * @param userId {UniUsers.UniUser|String} user or user id , which concerns joining  ( possessor of joining )
@@ -146,6 +148,8 @@ var _addJoiningHelpersToDocument = function(collection){
             return this.joinGetPolicy(joiningName) === UniAnyJoin.TYPE_JOIN_OPEN;
         },
         /**
+         * Checks if user can invite someone
+         * logic can be changed by callback 'canSendInvitation'
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
          * @param user {UniUsers.UniUser|String} owner of subject or admin, ( caller )
@@ -163,6 +167,8 @@ var _addJoiningHelpersToDocument = function(collection){
             return user && (user.isAdmin() || this.ownerId === user._id);
         },
         /**
+         * Checks if user can send joining request
+         * logic can be changed by callback 'canSendRequest'
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
          * @param user user or user id , which concerns joining  ( possessor of joining )
@@ -180,6 +186,8 @@ var _addJoiningHelpersToDocument = function(collection){
             return this.joinGetPolicy(joiningName) === UniAnyJoin.TYPE_JOIN_REQUEST;
         },
         /**
+         * Checks if user can accept joining request
+         * logic can be changed by callback 'canAcceptRequest'
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
          * @param acceptor {UniUsers.UniUser|String} owner of subject or admin, ( caller )
@@ -194,6 +202,8 @@ var _addJoiningHelpersToDocument = function(collection){
             return acceptor && (acceptor.isAdmin() || acceptor._id === this.ownerId);
         },
         /**
+         * Checks if user can change policy of joining process.
+         * logic can be changed by callback 'canChangePolicy'
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
          * @param user {UniUsers.UniUser|String} owner of subject or admin, ( caller )
@@ -208,6 +218,7 @@ var _addJoiningHelpersToDocument = function(collection){
             return user && (this.ownerId === user._id || user.isAdmin());
         },
         /**
+         * Gets current policy of joining
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
          * @returns {string}
@@ -216,6 +227,7 @@ var _addJoiningHelpersToDocument = function(collection){
             return this['_joiningPolicy_'+joiningName] || UniAnyJoin.TYPE_JOIN_REQUEST;
         },
         /**
+         * Checks if user is invited to subject
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
          * @param userId {UniUsers.UniUser|String} user or user id , which concerns joining  ( possessor of joining )
@@ -227,6 +239,7 @@ var _addJoiningHelpersToDocument = function(collection){
             return doc && doc.status === UniAnyJoin.STATUS_INVITED;
         },
         /**
+         * Checks if is waiting request
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
          * @param userId {UniUsers.UniUser|String} user or user id , which concerns joining  ( possessor of joining )
@@ -238,6 +251,8 @@ var _addJoiningHelpersToDocument = function(collection){
             return doc && doc.status === UniAnyJoin.STATUS_REQUESTED;
         },
         /**
+         * Checks if user can resign/reject invitation/request or leave subject
+         * logic can be changed by callback 'canResign'
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
          * @param acceptor {UniUsers.UniUser|String} owner of subject or admin, ( caller )
