@@ -116,7 +116,7 @@ var _addJoiningHelpersToDocument = function(collection){
          * @returns {boolean}
          */
         joinIsJoined: function(joiningName, userId){
-            userId = UniUtils.getIdIfDocument(UniUtils.getUniUserObject(userId));
+            userId = UniUtils.getIdIfDocument(userId) || UniUsers.getLoggedInId();
             var doc = this.joinGetRow(joiningName, userId);
             var res = _runCallback.call(this, 'isJoined', joiningName, userId);
             if(_.isBoolean(res)){
@@ -132,17 +132,22 @@ var _addJoiningHelpersToDocument = function(collection){
          * @param userId {UniUsers.UniUser|String} user or user id , which concerns joining  ( possessor of joining )
          * @returns {boolean}
          */
-        joinCanJoinDirectly: function(joiningName, userId){
+        joinCanJoinDirectly: function(joiningName, userId, acceptorId){
             userId = UniUtils.getIdIfDocument(userId);
+            acceptorId = acceptorId || userId;
             if(this.joinIsJoined(joiningName, userId)){
                 return false;
             }
             var joinDoc = this.joinGetRow(joiningName, userId);
-            var res = _runCallback.call(this, 'canJoinDirectly', joiningName, userId);
+            var res = _runCallback.call(this, 'canJoinDirectly', joiningName, userId, acceptorId);
             if(_.isBoolean(res)){
                 return res;
             }
             if(joinDoc && joinDoc.status === UniAnyJoin.STATUS_INVITED){
+                return true;
+            }
+            var acceptor = UniUtils.getUniUserObject(acceptorId);
+            if(acceptor && (acceptor === this.ownerId || acceptor.isAdmin())){
                 return true;
             }
             return this.joinGetPolicy(joiningName) === UniAnyJoin.TYPE_JOIN_OPEN;

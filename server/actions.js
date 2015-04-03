@@ -11,8 +11,8 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         joinSendInvitation: function(joiningName, toUser, originator){
-            toUser = UniUtils.getUniUserObject(toUser, true);
-            originator = UniUtils.getUniUserObject(originator, true);
+            toUser = UniUsers.ensureUniUser(toUser, true, UniUsers.UniUser);
+            originator = UniUsers.ensureUniUser(originator, false, UniUsers.UniUser);
             if(this.joinIsJoined(joiningName, toUser)){
                 throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
             }
@@ -53,13 +53,14 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         joinSendRequest: function(joiningName, fromUser, originatorId){
-            fromUser = UniUtils.getUniUserObject(fromUser);
+            fromUser = UniUsers.ensureUniUser(fromUser, false, UniUsers.UniUser);
 
             if(this.joinIsJoined(joiningName, fromUser)){
                 throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
             }
 
             originatorId = UniUtils.getIdIfDocument(originatorId) || UniUsers.getLoggedInId();
+            check(originatorId, String);
             var lastJoiningDoc = this.joinGetRow(joiningName, fromUser);
             var doc = this;
 
@@ -106,8 +107,7 @@ UniAnyJoin._addServerActions = function(collection){
             if(!lastJoiningDoc){
                 throw new Meteor.Error(404, i18n('anyJoin:errors:missingJoiningRequest'));
             }
-
-            acceptor = UniUtils.getUniUserObject(acceptor);
+            acceptor = UniUsers.ensureUniUser(acceptor, false, UniUsers.UniUser);
             if(!acceptor){
                 throw new Meteor.Error(404, i18n('anyJoin:errors:missingAcceptor'));
             }
@@ -130,7 +130,8 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         joinAcceptInvitation: function(joiningName, toUserId){
-            toUserId = UniUtils.getIdIfDocument(toUserId);
+            toUserId = UniUtils.getIdIfDocument(toUserId) || UniUsers.getLoggedInId();
+            check(toUserId, String);
             var lastJoiningDoc = this.joinGetRow(joiningName, toUserId);
             if(!lastJoiningDoc){
                 throw new Meteor.Error(404, i18n('anyJoin:errors:missingJoiningInvitation'));
@@ -145,35 +146,39 @@ UniAnyJoin._addServerActions = function(collection){
          * Joins to subject, if free to join
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
-         * @param userId {UniUsers.UniUser|String}
+         * @param user {UniUsers.UniUser|String}
+         * @param acceptor {UniUsers.UniUser=} default same as user
          * @returns {*}
          */
-        join: function(joiningName, userId){
-            userId = UniUtils.getIdIfDocument(userId) || UniUsers.getLoggedInId();
-            if(!this.joinCanJoinDirectly(joiningName, userId)){
+        join: function(joiningName, user, acceptor){
+            user = UniUsers.ensureUniUser(user, false, UniUsers.UniUser);
+            acceptor = UniUsers.ensureUniUser(acceptor) || user;
+            check(acceptor, UniUsers.UniUser);
+
+            if(!this.joinCanJoinDirectly(joiningName, user, acceptor)){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
             }
-            var lastJoiningDoc = this.joinGetRow(joiningName, userId);
+            var lastJoiningDoc = this.joinGetRow(joiningName, user);
             if(lastJoiningDoc){
                 var updateRes = lastJoiningDoc.update({$set:{
                     status: UniAnyJoin.STATUS_JOINED,
-                    acceptorId: userId
+                    acceptorId: acceptor._id
                 }});
-                _runCallback.call(this, 'onJoin', joiningName, lastJoiningDoc.findSelf(), userId);
+                _runCallback.call(this, 'onJoin', joiningName, lastJoiningDoc.findSelf(), user, acceptor);
                 return updateRes;
             }
             var insertRes = UniAnyJoin.insert({
                 joiningName: joiningName,
                 subjectId: this._id,
                 subjectCollectionName: collection._name,
-                possessorId: userId._id,
+                possessorId: user._id,
                 type: UniAnyJoin.TYPE_JOIN_OPEN,
-                status: UniAnyJoin.STATUS_REQUESTED,
-                originatorId: userId,
-                acceptorId: userId
+                status: UniAnyJoin.STATUS_JOINED,
+                originatorId: acceptor._id,
+                acceptorId: acceptor._id
             });
 
-            _runCallback.call(this, 'onJoin', joiningName, UniAnyJoin.findOne(insertRes), userId);
+            _runCallback.call(this, 'onJoin', joiningName, UniAnyJoin.findOne(insertRes), user, acceptor);
             return insertRes;
         },
         /**
@@ -218,7 +223,7 @@ UniAnyJoin._addServerActions = function(collection){
                     status: UniAnyJoin.STATUS_REJECTED,
                     acceptorId: acceptor._id
                 }});
-                _runCallback.call(this, 'onResign', joiningName, lastJoiningDoc.findSelf(), user);
+                _runCallback.call(this, 'onResign', joiningName, lastJoiningDoc.findSelf(), user, acceptor);
                 return updateRes;
             }
         }
@@ -229,30 +234,37 @@ UniAnyJoin._addServerActions = function(collection){
 
 Meteor.methods({
     'UniAnyJoin/joinSendInvitation': function(joiningName, collectionName, subjectId, userId){
+        check(this.userId, String);
         var subject = _getSubjectDocument(collectionName, subjectId);
         return subject.joinSendInvitation(joiningName, userId, this.userId);
     },
     'UniAnyJoin/joinSendRequest': function(joiningName, collectionName, subjectId){
+        check(this.userId, String);
         var subject = _getSubjectDocument(collectionName, subjectId);
         return subject.joinSendRequest(joiningName, this.userId, this.userId);
     },
     'UniAnyJoin/joinAcceptRequest': function(joiningName, collectionName, subjectId, forUserId){
+        check(this.userId, String);
         var subject = _getSubjectDocument(collectionName, subjectId);
         return subject.joinAcceptRequest(joiningName, forUserId, this.userId);
     },
     'UniAnyJoin/joinAcceptInvitation': function(joiningName, collectionName, subjectId){
+        check(this.userId, String);
         var subject = _getSubjectDocument(collectionName, subjectId);
         return subject.joinAcceptInvitation(joiningName, this.userId);
     },
-    'UniAnyJoin/join': function(joiningName, collectionName, subjectId){
+    'UniAnyJoin/join': function(joiningName, collectionName, subjectId, userId){
+        check(this.userId, String);
         var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.join(joiningName, this.userId);
+        return subject.join(joiningName, userId || this.userId, this.userId);
     },
     'UniAnyJoin/joinChangePolicy': function(joiningName, collectionName, subjectId, type){
+        check(this.userId, String);
         var subject = _getSubjectDocument(collectionName, subjectId);
         return subject.joinChangePolicy(joiningName, type, this.userId);
     },
     'UniAnyJoin/joinResign': function(joiningName, collectionName, subjectId, userId){
+        check(this.userId, String);
         var subject = _getSubjectDocument(collectionName, subjectId);
         return subject.joinResign(joiningName, userId, this.userId);
     }

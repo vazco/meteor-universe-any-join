@@ -82,13 +82,15 @@ UniAnyJoin._addClientActions = function(collection){
          * On server side will be called method joinCanJoin
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
+         * @param userId {string|UniUsers.UniUser}
          * @param cb {Function} callback on done
          * @returns {*}
          */
-        join: function(joiningName, cb){
+        join: function(joiningName, userId, cb){
             cb = cb || function(err){ if(err){console.error(err);} };
+            userId = UniUtils.getIdIfDocument(userId) || UniUser.getLoggedInId();
             if(this.joinGetPolicy(joiningName) === UniAnyJoin.TYPE_JOIN_OPEN){
-                return Meteor.call('UniAnyJoin/join', joiningName, collection._name, this._id, cb);
+                return Meteor.call('UniAnyJoin/join', joiningName, collection._name, this._id, userId, cb);
             }
             cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
         },

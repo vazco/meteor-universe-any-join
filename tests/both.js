@@ -41,9 +41,9 @@ if(Meteor.isServer){
             UniAnyJoin.find(),
             testCollection.find(),
             UniUsers.find({$or:[
-                {emails: {$elemMatch:{address: 'test_anyjoin@test_anyjoin.vazco'}}},
-                {emails: {$elemMatch:{address: 'test_anyjoin2@test_anyjoin.vazco'}}},
-                {emails: {$elemMatch:{address: 'test_anyjoin3@test_anyjoin.vazco'}}}
+                {emails: {$elemMatch:{address: 'test_owner@test_anyjoin.vazco'}}},
+                {emails: {$elemMatch:{address: 'test_user@test_anyjoin.vazco'}}},
+                {emails: {$elemMatch:{address: 'test_admin@test_anyjoin.vazco'}}}
             ]})
         ];
     });
@@ -56,10 +56,10 @@ if(Meteor.isServer){
                         user = UniUsers.findOne({username: 'test_anyjoin'});
                         break;
                     case 'someUser':
-                        user = UniUsers.findOne({username: 'test_anyjoin2'});
+                        user = UniUsers.findOne({username: 'test_user'});
                         break;
                     case 'admin':
-                        user =  UniUsers.findOne({username: 'test_anyjoin_admin'});
+                        user =  UniUsers.findOne({username: 'test_admin'});
                         break;
                 }
                 if(user){
@@ -71,29 +71,30 @@ if(Meteor.isServer){
         test_anyjoin_cleanup: function(){
             UniAnyJoin.remove({subjectCollectionName: testCollection._name});
             testCollection.remove({});
-            UniUsers.remove({emails: {$elemMatch:{address: 'test_anyjoin@test_anyjoin.vazco'}}});
-            UniUsers.remove({emails: {$elemMatch:{address: 'test_anyjoin2@test_anyjoin.vazco'}}});
-            UniUsers.remove({emails: {$elemMatch:{address: 'test_anyjoin3@test_anyjoin.vazco'}}});
+            UniUsers.remove({emails: {$elemMatch:{address: 'test_owner@test_anyjoin.vazco'}}});
+            UniUsers.remove({emails: {$elemMatch:{address: 'test_user@test_anyjoin.vazco'}}});
+            UniUsers.remove({emails: {$elemMatch:{address: 'test_admin@test_anyjoin.vazco'}}});
             if(this.userId){
                 console.warn('logout ',this.userId);
                 this.setUserId(null);
             }
 
+
         },
         test_anyjoin_prepare_data: function(who){
             UniUsers.insert({
-                username: 'test_anyjoin2',
-                emails: [{address: 'test_anyjoin2@test_anyjoin.vazco'}],
+                username: 'test_user',
+                emails: [{address: 'test_user@test_anyjoin.vazco'}],
                 profile: {name: 'some user'}
             });
             UniUsers.insert({
                 username: 'test_anyjoin',
-                emails: [{address: 'test_anyjoin@test_anyjoin.vazco'}],
+                emails: [{address: 'test_owner@test_anyjoin.vazco'}],
                 profile: {name: 'owner user'}
             });
             UniUsers.insert({
-                username: 'test_anyjoin_admin',
-                emails: [{address: 'test_anyjoin3@test_anyjoin.vazco'}],
+                username: 'test_admin',
+                emails: [{address: 'test_admin@test_anyjoin.vazco'}],
                 profile: {name: 'admin user'},
                 is_admin: true
             });
@@ -108,10 +109,10 @@ if(Meteor.isServer){
                         user = UniUsers.findOne({username: 'test_anyjoin'});
                         break;
                     case 'someUser':
-                        user = UniUsers.findOne({username: 'test_anyjoin2'});
+                        user = UniUsers.findOne({username: 'test_user'});
                         break;
                     case 'admin':
-                       user =  UniUsers.findOne({username: 'test_anyjoin_admin'});
+                       user =  UniUsers.findOne({username: 'test_admin'});
                         break;
                 }
                 if(user){
@@ -119,6 +120,7 @@ if(Meteor.isServer){
                     this.setUserId(user._id);
                 }
             }
+
         }
     });
 }
@@ -135,10 +137,10 @@ var prepareData = function(cb, who){
                         user = Meteor.users.findOne({username: 'test_anyjoin'});
                         break;
                     case 'someUser':
-                        user = Meteor.users.findOne({username: 'test_anyjoin2'});
+                        user = Meteor.users.findOne({username: 'test_user'});
                         break;
                     case 'admin':
-                        user =  Meteor.users.findOne({username: 'test_anyjoin_admin'});
+                        user =  Meteor.users.findOne({username: 'test_admin'});
                         break;
                 }
                 Meteor.userId = function(){
@@ -150,8 +152,7 @@ var prepareData = function(cb, who){
         Meteor.subscribe('testCollection_anyjoin', cb);
     });
     } else{
-        Meteor.call('test_anyjoin_prepare_data', who);
-        cb();
+        Meteor.call('test_anyjoin_prepare_data', who, cb);
     }
 };
 
@@ -168,13 +169,13 @@ var relog = function(who){
     var user;
     switch(who){
         case 'owner':
-            user = Meteor.users.findOne({username: 'test_anyjoin'});
+            user = UniUsers.findOne({username: 'test_anyjoin'});
             break;
         case 'someUser':
-            user = Meteor.users.findOne({username: 'test_anyjoin2'});
+            user = UniUsers.findOne({username: 'test_user'});
             break;
         case 'admin':
-            user =  Meteor.users.findOne({username: 'test_anyjoin_admin'});
+            user =  UniUsers.findOne({username: 'test_admin'});
             break;
     }
     Meteor.userId = function(){
@@ -277,7 +278,7 @@ Meteor.call('test_anyjoin_cleanup', function(){
                 }
             });
             var doc = testCollection.findOne({test: testNo});
-            var user = UniUsers.findOne({username: 'test_anyjoin2'});
+            var user = UniUsers.findOne({username: 'test_user'});
             test.isFalse(doc.joinIsJoined('negative_tests',user), 'callback - is joined');
             test.isFalse(doc.joinCanChangePolicy('negative_tests' ,user), 'callback - joinCanChangePolicy');
             test.isFalse(doc.joinCanChangePolicy('negative_tests',user), 'callback - joinCanChangePolicy');
@@ -328,7 +329,7 @@ Meteor.call('test_anyjoin_cleanup', function(){
                 }
             });
             var doc = testCollection.findOne({test: testNo});
-            var user = UniUsers.findOne({username: 'test_anyjoin2'});
+            var user = UniUsers.findOne({username: 'test_user'});
             test.isTrue(doc.joinIsJoined('positive_tests',user), 'callback - is joined');
             test.isTrue(doc.joinCanResign('positive_tests', user, user), 'callback - joinCanResign');
             isJoined = false;
@@ -342,7 +343,7 @@ Meteor.call('test_anyjoin_cleanup', function(){
             if(Meteor.isServer){
                 var doc = testCollection.findOne({test: 1});
                 var owner = UniUsers.findOne({username: 'test_anyjoin'});
-                var admin = UniUsers.findOne({username: 'test_anyjoin_admin'});
+                var admin = UniUsers.findOne({username: 'test_admin'});
                 doc.ownerId = owner._id;
                 doc.save('ownerId');
                 var testedCallback = {
@@ -381,10 +382,11 @@ Meteor.call('test_anyjoin_cleanup', function(){
                         test.isTrue(_.isString(toUserId), 'check if is user in onAcceptInvitation');
                         testedCallback.onAcceptInvitation = true;
                     },
-                    onJoin: function(joiningName, UniAnyJoinDocument, userId){
+                    onJoin: function(joiningName, UniAnyJoinDocument, user, acceptor){
                         test.equal(joiningName, 'server_cb_tests', 'check joiningName in onJoin');
                         test.isTrue(UniAnyJoinDocument && UniAnyJoinDocument instanceof UniCollection.UniDoc, 'is doc instanceof UniCollection.UniDoc in onJoin');
-                        test.isTrue(_.isString(userId), 'check if is user in onJoin');
+                        test.isTrue(_.isObject(user), 'check if is user in onJoin');
+                        test.isTrue(_.isObject(acceptor), 'check if is acceptor in onJoin');
                         testedCallback.onJoin = true;
                     },
                     onResign: function(joiningName, UniAnyJoinDocument, user){
@@ -412,7 +414,11 @@ Meteor.call('test_anyjoin_cleanup', function(){
                 });
 
             }
-            cleanUpData(onClomplete);
+            Meteor.setTimeout(function(){
+                cleanUpData(onClomplete);
+            }, 100);
+
+
         });
     });
 
@@ -421,8 +427,8 @@ Meteor.call('test_anyjoin_cleanup', function(){
             prepareData(function () {
                 var doc = testCollection.findOne({test: 3});
                 var owner = UniUsers.findOne({username: 'test_anyjoin'});
-                var someUser = UniUsers.findOne({username: 'test_anyjoin2'});
-                var admin = UniUsers.findOne({username: 'test_anyjoin_admin'});
+                var someUser = UniUsers.findOne({username: 'test_user'});
+                var admin = UniUsers.findOne({username: 'test_admin'});
                 doc.ownerId = owner._id;
                 doc.save('ownerId');
                 //admin test
@@ -475,7 +481,7 @@ Meteor.call('test_anyjoin_cleanup', function(){
                 doc.joinChangePolicy('test',UniAnyJoin.TYPE_JOIN_OPEN, owner);
                 test.equal(doc.joinGetPolicy('test'), UniAnyJoin.TYPE_JOIN_OPEN, 'changing policy - open join');
                 test.isTrue(doc.joinCanJoinDirectly('test',someUser), 'someUser joinCanJoinDirectly');
-                doc.join('test',someUser);
+                doc.join('test', someUser);
                 test.isTrue(doc.joinIsJoined('test',someUser), 'is joined');
                 test.isTrue(doc.joinCanResign('test',admin, someUser), 'Admin can kick out some user');
                 if(doc.joinCanResign('test',someUser, someUser)){
@@ -495,8 +501,8 @@ Meteor.call('test_anyjoin_cleanup', function(){
             prepareData(function () {
                 var doc = testCollection.findOne({test: 3});
                 var owner = UniUsers.findOne({username: 'test_anyjoin'});
-                var someUser = UniUsers.findOne({username: 'test_anyjoin2'});
-                var admin = UniUsers.findOne({username: 'test_anyjoin_admin'});
+                var someUser = UniUsers.findOne({username: 'test_user'});
+                var admin = UniUsers.findOne({username: 'test_admin'});
                 doc.ownerId = owner._id;
                 doc.save('ownerId');
 
@@ -572,7 +578,7 @@ Meteor.call('test_anyjoin_cleanup', function(){
                                                 doc.refresh();
                                                 test.equal(doc.joinGetPolicy('test'), UniAnyJoin.TYPE_JOIN_OPEN, 'changing policy - open join');
                                                 test.isTrue(doc.joinCanJoinDirectly('test',someUser), 'someUser joinCanJoinDirectly');
-                                                doc.join('test',function(err){
+                                                doc.join('test', someUser,function(err){
                                                     onErr(err, 'join');
                                                     doc.refresh();
                                                     test.isTrue(doc.joinIsJoined('test',someUser), 'is joined');
