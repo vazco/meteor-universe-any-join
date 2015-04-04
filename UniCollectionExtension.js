@@ -146,7 +146,7 @@ var _addJoiningHelpersToDocument = function(collection){
             if(joinDoc && joinDoc.status === UniAnyJoin.STATUS_INVITED){
                 return true;
             }
-            var acceptor = UniUtils.getUniUserObject(acceptorId);
+            var acceptor = UniUsers.ensureUniUser(acceptorId);
             if(acceptor && (acceptor === this.ownerId || acceptor.isAdmin())){
                 return true;
             }
@@ -161,7 +161,7 @@ var _addJoiningHelpersToDocument = function(collection){
          * @returns {boolean}
          */
         joinCanSendInvitation: function(joiningName, user){
-            user = UniUtils.getUniUserObject(user);
+            user = UniUsers.ensureUniUser(user);
             if(!user || this.joinIsJoined(joiningName, user)){
                 return false;
             }
@@ -180,7 +180,7 @@ var _addJoiningHelpersToDocument = function(collection){
          * @returns {boolean}
          */
         joinCanSendRequest: function(joiningName, user){
-            user = UniUtils.getUniUserObject(user);
+            user = UniUsers.ensureUniUser(user);
             if(!user || this.joinIsJoined(joiningName, user)){
                 return false;
             }
@@ -199,7 +199,7 @@ var _addJoiningHelpersToDocument = function(collection){
          * @returns {boolean}
          */
         joinCanAcceptRequest: function(joiningName, acceptor){
-            acceptor = UniUtils.getUniUserObject(acceptor);
+            acceptor = UniUsers.ensureUniUser(acceptor);
             var res = _runCallback.call(this, 'canAcceptRequest', joiningName, acceptor);
             if(_.isBoolean(res)){
                 return res;
@@ -215,7 +215,7 @@ var _addJoiningHelpersToDocument = function(collection){
          * @returns {boolean}
          */
         joinCanChangePolicy: function(joiningName, user){
-            user = UniUtils.getUniUserObject(user);
+            user = UniUsers.ensureUniUser(user);
             var res = _runCallback.call(this, 'canChangePolicy', joiningName, user);
             if(_.isBoolean(res)){
                 return res;
@@ -265,7 +265,7 @@ var _addJoiningHelpersToDocument = function(collection){
          * @returns {boolean}
          */
         joinCanResign: function(joiningName, acceptor, user){
-            acceptor = UniUtils.getUniUserObject(acceptor);
+            acceptor = UniUsers.ensureUniUser(acceptor);
             var res = _runCallback.call(this, 'canResign', joiningName, user, acceptor);
             if(_.isBoolean(res)){
                 return res;
@@ -273,7 +273,7 @@ var _addJoiningHelpersToDocument = function(collection){
             if(acceptor && (acceptor.isAdmin || acceptor._id === this.ownerId)){
                 return true;
             }
-            user = UniUtils.getUniUserObject(user);
+            user = UniUsers.ensureUniUser(user);
             var doc = this.joinGetRow(joiningName, user._id);
             if(doc && doc.possessorId === acceptor._id){
                 return true;

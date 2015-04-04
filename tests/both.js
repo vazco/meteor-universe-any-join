@@ -362,11 +362,11 @@ Meteor.call('test_anyjoin_cleanup', function(){
                         test.isTrue(_.isObject(originator), 'check if is user in onInvitation');
                         testedCallback.onInvitation = true;
                     },
-                    onRequest: function(joiningName, UniAnyJoinDocument, fromUser, originatorId){
+                    onRequest: function(joiningName, UniAnyJoinDocument, fromUser, originator){
                         test.equal(joiningName, 'server_cb_tests', 'check joiningName in onRequest');
                         test.isTrue(UniAnyJoinDocument && UniAnyJoinDocument instanceof UniCollection.UniDoc, 'is doc instanceof UniCollection.UniDoc in onRequest');
                         test.isTrue(_.isObject(fromUser), 'check if is user in onRequest');
-                        test.isTrue(_.isString(originatorId), 'check if is user in onRequest');
+                        test.isTrue(_.isObject(originator), 'check if is user in onRequest');
                         testedCallback.onRequest = true;
                     },
                     onAcceptRequest: function(joiningName, UniAnyJoinDocument, fromUser, acceptor){

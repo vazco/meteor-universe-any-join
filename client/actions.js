@@ -14,8 +14,8 @@ UniAnyJoin._addClientActions = function(collection){
          */
         joinSendInvitation: function(joiningName, toUser, cb){
             cb = cb || function(err){ if(err){console.error(err);} };
-            toUser = UniUtils.getUniUserObject(toUser, true);
-            if(toUser && this.joinIsJoined(joiningName, toUser)){
+            toUser = UniUsers.ensureUniUser(toUser);
+            if(this.joinIsJoined(joiningName, toUser)){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
             }
             if(this.joinCanSendInvitation(joiningName) && toUser){
@@ -35,7 +35,7 @@ UniAnyJoin._addClientActions = function(collection){
         joinSendRequest: function(joiningName, cb){
             cb = cb || function(err){ if(err){ console.error(err); } };
             var fromUser = UniUsers.getLoggedIn();
-            if(this.joinIsJoined(joiningName, fromUser)){
+            if(fromUser && this.joinIsJoined(joiningName, fromUser)){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
             }
             if(this.joinCanSendRequest(joiningName, fromUser) && fromUser){
@@ -128,7 +128,7 @@ UniAnyJoin._addClientActions = function(collection){
                 user = UniUsers.getLoggedIn();
             }
             cb = cb || function(err){ if(err){console.error(err);} };
-            user = UniUtils.getUniUserObject(user);
+            user = UniUsers.ensureUniUser(user);
             if(user && this.joinCanResign(joiningName, UniUsers.getLoggedIn(), user)){
                 return Meteor.call('UniAnyJoin/joinResign', joiningName, collection._name, this._id, user._id, cb);
             }

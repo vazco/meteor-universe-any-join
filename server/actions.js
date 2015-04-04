@@ -11,8 +11,8 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         joinSendInvitation: function(joiningName, toUser, originator){
-            toUser = UniUsers.ensureUniUser(toUser, true, UniUsers.UniUser);
-            originator = UniUsers.ensureUniUser(originator, false, UniUsers.UniUser);
+            toUser = UniUsers.ensureUniUser(toUser || null);
+            originator = UniUsers.ensureUniUser(originator);
             if(this.joinIsJoined(joiningName, toUser)){
                 throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
             }
@@ -52,15 +52,13 @@ UniAnyJoin._addServerActions = function(collection){
          * @param originatorId {UniUsers.UniUser|String} caller
          * @returns {*}
          */
-        joinSendRequest: function(joiningName, fromUser, originatorId){
-            fromUser = UniUsers.ensureUniUser(fromUser, false, UniUsers.UniUser);
+        joinSendRequest: function(joiningName, fromUser, originator){
+            fromUser = UniUsers.ensureUniUser(fromUser);
 
             if(this.joinIsJoined(joiningName, fromUser)){
                 throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
             }
-
-            originatorId = UniUtils.getIdIfDocument(originatorId) || UniUsers.getLoggedInId();
-            check(originatorId, String);
+            originator = UniUsers.ensureUniUser(originator || fromUser);
             var lastJoiningDoc = this.joinGetRow(joiningName, fromUser);
             var doc = this;
 
@@ -84,10 +82,10 @@ UniAnyJoin._addServerActions = function(collection){
                 possessorId: fromUser._id,
                 type: UniAnyJoin.TYPE_JOIN_REQUEST,
                 status: UniAnyJoin.STATUS_REQUESTED,
-                originatorId: originatorId
+                originatorId: originator._id
             });
 
-            _runCallback.call(this, 'onRequest', joiningName, UniAnyJoin.findOne(insertRes), fromUser, originatorId);
+            _runCallback.call(this, 'onRequest', joiningName, UniAnyJoin.findOne(insertRes), fromUser, originator);
             return insertRes;
         },
         /**
@@ -107,10 +105,7 @@ UniAnyJoin._addServerActions = function(collection){
             if(!lastJoiningDoc){
                 throw new Meteor.Error(404, i18n('anyJoin:errors:missingJoiningRequest'));
             }
-            acceptor = UniUsers.ensureUniUser(acceptor, false, UniUsers.UniUser);
-            if(!acceptor){
-                throw new Meteor.Error(404, i18n('anyJoin:errors:missingAcceptor'));
-            }
+            acceptor = UniUsers.ensureUniUser(acceptor, UniUsers.matchingDocument(), i18n('anyJoin:errors:missingAcceptor'));
 
             if(lastJoiningDoc.type !== UniAnyJoin.TYPE_JOIN_REQUEST ||
                 !this.joinCanAcceptRequest(joiningName, acceptor)){
@@ -151,9 +146,8 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         join: function(joiningName, user, acceptor){
-            user = UniUsers.ensureUniUser(user, false, UniUsers.UniUser);
-            acceptor = UniUsers.ensureUniUser(acceptor) || user;
-            check(acceptor, UniUsers.UniUser);
+            user = UniUsers.ensureUniUser(user);
+            acceptor = UniUsers.ensureUniUser(acceptor || user);
 
             if(!this.joinCanJoinDirectly(joiningName, user, acceptor)){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
@@ -193,7 +187,7 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         joinChangePolicy: function(joiningName, type, user){
-            user = UniUtils.getUniUserObject(user);
+            user = UniUsers.ensureUniUser(user);
             if(!this.joinCanChangePolicy(joiningName, user)){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
             }
@@ -209,11 +203,9 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         joinResign: function(joiningName, user, acceptor){
-            user = UniUtils.getUniUserObject(user);
-            acceptor = UniUtils.getUniUserObject(acceptor);
-            if(!user){
-                throw new Meteor.Error(403, i18n('anyJoin:errors:missingAcceptor'));
-            }
+            user = UniUsers.ensureUniUser(user, UniUsers.matchingDocument(), i18n('anyJoin:errors:missingAcceptor'));
+            acceptor = UniUsers.ensureUniUser(acceptor || user);
+
             if(!this.joinCanResign(joiningName, acceptor, user)){
                 throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
             }

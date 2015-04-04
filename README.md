@@ -94,7 +94,7 @@ E.g.: site will be send email every time when someone sends joining request or i
 
     fired after invitation was saved in db
 
-- **onRequest**(joiningName, uniAnyJoinDocument, fromUser, originatorId)
+- **onRequest**(joiningName, uniAnyJoinDocument, fromUser, originator)
 
     fired after joining request was send
 
