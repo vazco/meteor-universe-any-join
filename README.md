@@ -35,6 +35,18 @@ Of course, You can influence on that, who can what.
 Defining own callbacks, you can decide who and on what rules:
 canResign, canChangePolicy, canAcceptRequest, canSendRequest, canSendInvitation, canJoinDirectly.
 
+## Making from any universe collection a joinable collection.
+You can attach AnyJoin functionality to collection using instruction:
+
+```
+yourCollection.attachAnyJoin(name, callbacks);
+```
+
+- **name** It's a joining name, because you can attach many of joins on single collection. This name will be used to recognize joining.
+- **callbacks** Using this parameter you can define your own logic of access policy for each 'can*' methods.
+    Additionally you can define reaction, which will be executed after actions.
+
+
 ### Callbacks for access control
 ###### ( available anywhere ) ######
 All following callbacks to grant or deny permission should return an boolean.
@@ -84,12 +96,11 @@ Any other type of returned value will be filtered out and method will be continu
     *default logic:* checks if status is equal constant of `UniAnyJoin.STATUS_JOINED`
     in joiningName for userId.
 
-## Reaction on events
+### Callbacks on events
+###### ( available just on the server ) ######
 You can also do your stuff as a reaction on event.
 E.g.: site will be send email every time when someone sends joining request or invitation.
 
-### Callbacks on events
-###### ( available just on the server ) ######
 - **onInvitation**(joiningName, uniAnyJoinDocument, toUser, originator)
 
     fired after invitation was saved in db
@@ -119,4 +130,31 @@ E.g.: site will be send email every time when someone sends joining request or i
     invoke when new document of joinable collection will be saved in db.
     Should return default type of policy for joiningName in collection
 
+## Extending Documents
+This package using function helpers on collection to extending prototype of document constructor.
+After you attached AnyJoin functionality on every document from joinable collection will be have following methods:
 
+- Same on both sides
+    - **joinGetRow(joiningName, userId)** Gets document for passed arguments (joiningName, userId) for current subject (document)
+    - **joinIsJoined(joiningName, userId)** Checks if user is joined to current subject by joiningName
+    - **joinCanJoinDirectly(joiningName, userId, acceptorId)** Checks if user can join directly (free for join or user is admin)
+    - **joinCanSendInvitation(joiningName, user)** Checks if user can invite someone
+    - **joinCanSendRequest(joiningName, user)** Checks if user can send joining request
+    - **joinCanAcceptRequest(joiningName, acceptor)** Checks if user can accept joining request
+    - **joinCanChangePolicy(joiningName, user)** Checks if user can change policy of joining process.
+    - **joinGetPolicy(joiningName)** Gets current policy of joining
+    - **joinIsUserInvited(joiningName, userId)** Checks if user is invited to subject
+    - **joinIsRequestSent(joiningName, userId)** Checks if is waiting request
+    - **joinCanResign(joiningName, acceptor, use)** Checks if user can resign/reject invitation/request or leave subject
+
+- Different implementation client/server
+####On server additionally last parameter is the user context to execute method, but on client is callback###
+
+    - **joinSendInvitation(joiningName, toUser, {caller/callback})** Sends Invitation to joining
+    - **joinSendRequest(joiningName, {fromUser, originator/callback})** Sends joining request
+    - **joinAcceptRequest(joiningName, fromUser, {acceptor/callback})** Accepts users request and join him to subject
+    - **joinAcceptInvitation(joiningName, {fromUser, acceptor/callback})** Accepts invitation to joining
+    - **join(joiningName, user, {acceptor/callback})** Joins to subject, if free to join
+    - **joinChangePolicy(joiningName, type, {acceptor/callback})** Sets policy of joining, allowed types:
+    UniAnyJoin.TYPE_JOIN_REQUEST, UniAnyJoin.TYPE_JOIN_INVITATION, UniAnyJoin.TYPE_JOIN_OPEN
+    - **joinResign(joiningName, user, {acceptor/callback})** Resigns from joining, rejects user request or invitation

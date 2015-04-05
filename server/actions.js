@@ -49,7 +49,7 @@ UniAnyJoin._addServerActions = function(collection){
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
          * @param fromUser {UniUsers.UniUser|String} sender ( possessor )
-         * @param originatorId {UniUsers.UniUser|String} caller
+         * @param originator {UniUsers.UniUser|String} caller
          * @returns {*}
          */
         joinSendRequest: function(joiningName, fromUser, originator){
