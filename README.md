@@ -148,7 +148,7 @@ After you attached AnyJoin functionality on every document from joinable collect
     - **joinCanResign(joiningName, acceptor, use)** Checks if user can resign/reject invitation/request or leave subject
 
 - Different implementation client/server
-####On server additionally last parameter is the user context to execute method, but on client is callback###
+####On server additionally last parameter is the user context to execute method, but on client is callback####
 
     - **joinSendInvitation(joiningName, toUser, {caller/callback})** Sends Invitation to joining
     - **joinSendRequest(joiningName, {fromUser, originator/callback})** Sends joining request
