@@ -9,8 +9,8 @@ Package.describe({
 var apiUseCommon = [
     'underscore',
     'check',
-    'vazco:universe-utilities@1.0.4',
-    'vazco:universe-collection@1.0.6',
+    'vazco:universe-utilities@1.0.6',
+    'vazco:universe-collection@1.1.0',
     'vazco:universe-access@1.1.3',
     'aldeed:simple-schema@1.3.2',
     'aldeed:collection2@2.3.3',
@@ -78,8 +78,8 @@ Package.onTest(function (api) {
     api.export('UniAnyJoin');
 
     api.imply([
-        'vazco:universe-collection@1.0.6',
-        'vazco:universe-utilities@1.0.4',
+        'vazco:universe-collection',
+        'vazco:universe-utilities',
         'accounts-base'
     ]);
     api.addFiles('tests/both.js');

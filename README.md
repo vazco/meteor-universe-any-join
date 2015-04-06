@@ -7,6 +7,12 @@ for example to events or groups. You can add multi joining types to one document
 For example:
 You can be a member of group, but also a friend of the same group or just observer.
 
+## Installation
+
+```sh
+$ meteor add vazco:universe-any-join
+```
+
 ## Joining types
 Joining mode can work in three different types of joining.
 
@@ -148,7 +154,7 @@ After you attached AnyJoin functionality on every document from joinable collect
     - **joinCanResign(joiningName, acceptor, use)** Checks if user can resign/reject invitation/request or leave subject
 
 - Different implementation client/server
-####On server additionally last parameter is the user context to execute method, but on client is callback####
+#### On server additionally last parameter is the user context to execute method, but on client is callback####
 
     - **joinSendInvitation(joiningName, toUser, {caller/callback})** Sends Invitation to joining
     - **joinSendRequest(joiningName, {fromUser, originator/callback})** Sends joining request
@@ -156,5 +162,12 @@ After you attached AnyJoin functionality on every document from joinable collect
     - **joinAcceptInvitation(joiningName, {fromUser, acceptor/callback})** Accepts invitation to joining
     - **join(joiningName, user, {acceptor/callback})** Joins to subject, if free to join
     - **joinChangePolicy(joiningName, type, {acceptor/callback})** Sets policy of joining, allowed types:
-    UniAnyJoin.TYPE_JOIN_REQUEST, UniAnyJoin.TYPE_JOIN_INVITATION, UniAnyJoin.TYPE_JOIN_OPEN
+    *UniAnyJoin.TYPE_JOIN_REQUEST, UniAnyJoin.TYPE_JOIN_INVITATION, UniAnyJoin.TYPE_JOIN_OPEN*
     - **joinResign(joiningName, user, {acceptor/callback})** Resigns from joining, rejects user request or invitation
+
+
+### Check other amazing universe packages:
+
+- [Atmosphere js](https://atmospherejs.com/?q=vazco%3Auniverse)
+- [Github](https://github.com/search?l=JavaScript&q=meteor-universe&type=Repositories&utf8=%E2%9C%93)
+
