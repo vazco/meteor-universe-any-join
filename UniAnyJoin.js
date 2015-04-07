@@ -71,7 +71,7 @@ UniAnyJoin.setDefaultSort({createdAt: -1});
 UniAnyJoin.allow({
     publish: function(userId, doc, publicationName){
         if(userId){
-            return publicationName === 'uniAnyJoin';
+            return publicationName === 'uniAnyJoin' || publicationName === 'uniAnyJoinUsersToAccept';
         }
     }
 });
@@ -98,3 +98,28 @@ UniAnyJoin.getSubjectCollection = function(name){
     "use strict";
     return name && UniAnyJoin._collections[name];
 };
+
+UniAnyJoin.helpers({
+    getSubject: function(options){
+        "use strict";
+        var coll = UniAnyJoin.getSubjectCollection(this.subjectCollectionName);
+        var doc = coll.findOne({_id: this.subjectId}, options || {});
+        return coll.ensureUniDoc(doc);
+    },
+    getSubjectCollection: function(){
+        "use strict";
+        return  UniAnyJoin.getSubjectCollection(this.subjectCollectionName);
+    },
+    getPossessorOfEntry: function(options){
+        "use strict";
+        return UniUsers.findOne({_id: this.possessorId}, options || {});
+    },
+    getOriginatorOfEntry: function(options){
+        "use strict";
+        return this.originatorId && UniUsers.findOne({_id: this.originatorId}, options || {});
+    },
+    getAcceptorOfEntry: function(options){
+        "use strict";
+        return this.acceptorId && UniUsers.findOne({_id: this.acceptorId},options || {});
+    }
+});

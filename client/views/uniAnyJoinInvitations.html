@@ -1,0 +1,21 @@
+<template name="uniAnyJoinInvitations">
+    {{#if Template.subscriptionsReady}}
+        <div class="list-group uni-any-join-list">
+            {{#each getInvitations}}
+                {{> uniAnyJoinInvitationsItem}}
+                {{else}}
+                <div class="list-menu-items uni-any-join-no-items">{{i18n 'anyJoin.noInvitations'}}</div>
+            {{/each}}
+        </div>
+        {{else}}
+        <div class="uni-any-join-loading">{{i18n 'anyJoin.loading'}}</div>
+    {{/if}}
+</template>
+
+<template name="uniAnyJoinInvitationsItem">
+    <div class="list-group-item">
+        <span>{{getSubjectTitle}}</span>
+        <span class="list-menu-items btn btn-primary js-uni-any-join-accept-invitation">{{i18n 'anyJoin.joinAcceptInvitation'}}</span>
+        <span class="list-menu-items btn btn-danger js-uni-any-join-resign">{{i18n 'anyJoin.joinReject'}}</span>
+    </div>
+</template>

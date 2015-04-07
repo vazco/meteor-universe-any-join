@@ -1,0 +1,63 @@
+<!--
+this template must be launched with required parameters:
+ joiningName, subjectId, subjectName
+-->
+<template name="uniAnyJoinSearchUsers">
+    <div class="row">
+        <div class="col-md-12">
+            {{> uniAnyJoinSearchUsersInput}}
+        </div>
+    </div>
+    {{#if Template.subscriptionsReady}}
+        <ul class="list-group uni-any-join-list">
+            {{#each getUsers}}
+                {{> uniAnyJoinSearchUsersResultItem subject=getSubject user=.}}
+            {{/each}}
+        </ul>
+    {{else}}
+        <div class="uni-any-join-loading">{{i18n 'anyJoin.loading'}} ...</div>
+    {{/if}}
+</template>
+
+<template name="uniAnyJoinSearchUsersInput">
+    <div class="input-group">
+        <input type="text" class="js-any-join-search-users maa form-control"/>
+    </div>
+</template>
+
+<template name="uniAnyJoinSearchUsersResultItem">
+    {{#with user}}
+    <li class="list-group-item">
+        <a href="{{pathFor 'uniProfile'}}">
+            {{#if isAvatarViewExists}}
+                {{> uniUserAvatar user=. className='uni-any-join-tiny-user-avatar'}}
+            {{/if}}
+            <span>{{getName}}</span>
+        </a>
+        {{#with getAnyJoinEntry}}
+            {{#if eq status UniAnyJoin.STATUS_JOINED}}
+                <span class="list-menu-items btn btn-danger js-uni-any-join-resign">{{i18n 'anyJoin.joinReject'}}</span>
+                <span class="list-menu-items btn">{{i18n 'anyJoin.joined'}}</span>
+                {{else}}
+                {{#if eq status UniAnyJoin.STATUS_INVITED}}
+                    <span class="list-menu-items btn btn-danger js-uni-any-join-resign">{{i18n 'anyJoin.joinCancel'}}</span>
+                    <span class="list-menu-items btn">{{i18n 'anyJoin.invited'}}</span>
+                    {{else}}
+                    {{#if isRequested}}
+                        <span class="list-menu-items btn btn-primary js-uni-any-join-accept-request">{{i18n 'anyJoin.joinAcceptRequest'}}</span>
+                        <span class="list-menu-items btn btn-danger js-uni-any-join-resign">{{i18n 'anyJoin.joinReject'}}</span>
+                        {{else}}
+                        {{#if canBeInvited}}
+                            <span title="{{formatDateMoment createdAt}}" class="list-menu-items btn btn-primary js-uni-any-join-invite">{{i18n 'anyJoin.joinInvite'}}</span>
+                        {{/if}}
+                    {{/if}}
+                {{/if}}
+            {{/if}}
+            {{else}}
+            {{#if canBeInvited}}
+                <span class="list-menu-items btn btn-primary js-uni-any-join-invite">{{i18n 'anyJoin.joinInvite'}}</span>
+            {{/if}}
+        {{/with}}
+    </li>
+    {{/with}}
+</template>

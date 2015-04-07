@@ -1,0 +1,34 @@
+<!--
+this template must be launched with required parameters:
+ joiningName, subjectId, subjectName
+-->
+<template name="uniAnyJoinPossessorsList">
+{{#if Template.subscriptionsReady}}
+    <ul class="list-group uni-any-join-list">
+    {{#each getPossessors}}
+        {{> uniAnyJoinPossessorItem}}
+    {{/each}}
+    </ul>
+    {{else}}
+    <div class="uni-any-join-loading">{{i18n 'anyJoin.loading'}} ...</div>
+{{/if}}
+</template>
+
+<template name="uniAnyJoinPossessorItem">
+    <li class="list-group-item">
+        <a href="{{pathFor 'uniProfile'}}">
+            {{#if isAvatarViewExists}}
+                {{> uniUserAvatar user=. className='uni-any-join-tiny-user-avatar'}}
+            {{/if}}
+             <span>{{getName}}</span>
+        </a>
+        {{#if eq _joiningEntry.type UniAnyJoin.TYPE_JOIN_REQUEST}}
+            <span class="list-menu-items btn btn-primary js-uni-any-join-accept-request">{{i18n 'anyJoin.joinAcceptRequest'}}</span>
+            <span class="list-menu-items btn btn-danger js-uni-any-join-resign">{{i18n 'anyJoin.joinReject'}}</span>
+        {{/if}}
+        {{#if eq _joiningEntry.type UniAnyJoin.TYPE_JOIN_INVITATION}}
+            <span title="{{formatDateMoment createdAt}}" class="list-menu-items btn">{{i18n 'anyJoin.invited'}}</span>
+            <span class="list-menu-items btn btn-danger js-uni-any-join-resign">{{i18n 'anyJoin.joinCancel'}}</span>
+        {{/if}}
+    </li>
+</template>

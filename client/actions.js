@@ -13,7 +13,7 @@ UniAnyJoin._addClientActions = function(collection){
          * @returns {*}
          */
         joinSendInvitation: function(joiningName, toUser, cb){
-            cb = cb || function(err){ if(err){console.error(err);} };
+            cb = cb || function(err){ if(err){ console.error(err); } };
             toUser = UniUsers.ensureUniUser(toUser);
             if(this.joinIsJoined(joiningName, toUser)){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
@@ -53,7 +53,7 @@ UniAnyJoin._addClientActions = function(collection){
          * @returns {*}
          */
         joinAcceptRequest: function(joiningName, fromUser, cb){
-            cb = cb || function(err){ if(err){console.error(err);} };
+            cb = cb || function(err){ if(err){ console.error(err.message); } };
             if(this.joinIsJoined(joiningName, fromUser)){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
             }

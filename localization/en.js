@@ -4,9 +4,17 @@ i18n.map('en', {
     anyJoin: {
         leave: 'Leave',
         join: 'Join',
+        joined: 'Joined',
         joinSendRequest: 'Request membership',
         joinAcceptInvitation: 'Accept invitation',
+        joinReject: 'Reject',
+        joinCancel: 'Cancel',
+        invitedSince: 'Invited since',
+        invited: 'Invited',
+        joinAcceptRequest: 'Accept request',
+        joinInvite: 'Invite',
         noInvitations: 'There are no current invitations.',
+        loading: 'Loading',
         errors:{
             userAlreadyJoined: 'User already is joined to this entity',
             missingJoiningRequest: 'Joining request cannot be found',

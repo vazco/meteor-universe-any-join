@@ -10,7 +10,7 @@ var apiUseCommon = [
     'underscore',
     'check',
     'vazco:universe-utilities@1.0.6',
-    'vazco:universe-collection@1.1.0',
+    'vazco:universe-collection@1.1.3',
     'vazco:universe-access@1.1.3',
     'aldeed:simple-schema@1.3.2',
     'aldeed:collection2@2.3.3',
@@ -23,9 +23,11 @@ Package.onUse(function (api) {
     api.use(apiUseCommon);
 
     api.use([
-        'templating'
+        'templating',
+        'less'
     ], 'client');
 
+    api.use('vazco:universe-ui@0.5.0', 'client', {weak: true});
 
     api.add_files([
         'UniAnyJoin.js',
@@ -40,8 +42,15 @@ Package.onUse(function (api) {
 
     api.add_files([
         'client/actions.js',
+        'client/views/styles.less',
         'client/views/uniAnyJoinButton.html',
-        'client/views/uniAnyJoinButton.js'
+        'client/views/uniAnyJoinButton.js',
+        'client/views/uniAnyJoinPossessorsList.html',
+        'client/views/uniAnyJoinPossessorsList.js',
+        'client/views/uniAnyJoinSearchUsers.html',
+        'client/views/uniAnyJoinSearchUsers.js',
+        'client/views/uniAnyJoinInvitations.html',
+        'client/views/uniAnyJoinInvitations.js'
     ], 'client');
 
 

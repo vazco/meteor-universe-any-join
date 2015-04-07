@@ -165,6 +165,29 @@ After you attached AnyJoin functionality on every document from joinable collect
     *UniAnyJoin.TYPE_JOIN_REQUEST, UniAnyJoin.TYPE_JOIN_INVITATION, UniAnyJoin.TYPE_JOIN_OPEN*
     - **joinResign(joiningName, user, {acceptor/callback})** Resigns from joining, rejects user request or invitation
 
+## Templates & Publications
+
+### Pre prepared templates
+This package provide pre prepared templates which are ready to use.
+
+- `{{> uniAnyJoinInvitations}}` listing of invitations for current logged in user
+- `{{> uniAnyJoinSearchUsers joiningName subjectId subjectName}}` search list of users with buttons for management of invitation, joins, requests
+- `{{> uniAnyJoinPossessorsList joiningName subjectId subjectName}}` listing of users which need acceptance of joining requests and invitations which are waiting for them.
+
+joiningName - name of joining like members, subjectName - name of subject collection, subjectId - id of document.
+
+Any templates you can replace or change by package [template extension](https://github.com/aldeed/meteor-template-extension)
+
+### Publications
+This package provides four publications of universe.
+- uniAnyJoinMyInvitations
+- uniAnyJoin
+- uniAnyJoinUsersToAccept
+- uniAnyJoinSearchUsers
+
+They are made by universe access package, so you can replace them by define self with option override: true. Additionally you can using allow/deny publish manipulate of permissions for published documents.
+details [here](https://atmospherejs.com/vazco/universe-access)
+
 
 ### Check other amazing universe packages:
 

@@ -14,7 +14,6 @@ UniCollection.prototype.attachAnyJoin = function(joiningName, cbs){
     }
 
     cbs = cbs || {};
-
     if(_.isObject(this._joiningCallbacks)){
         this._joiningCallbacks[joiningName] = cbs;
         UniAnyJoin._addToSchemaJoiningFields(this, joiningName);
@@ -24,6 +23,7 @@ UniCollection.prototype.attachAnyJoin = function(joiningName, cbs){
 
     this._joiningCallbacks = {};
     UniAnyJoin._collections[this._name] = this;
+    this._joiningCallbacks[joiningName] = cbs;
     //initialize helpers
     UniAnyJoin._addToSchemaJoiningFields(this, joiningName);
     _addJoiningHelpersToDocument(this, joiningName);
@@ -162,7 +162,7 @@ var _addJoiningHelpersToDocument = function(collection){
          */
         joinCanSendInvitation: function(joiningName, user){
             user = UniUsers.ensureUniUser(user);
-            if(!user || this.joinIsJoined(joiningName, user)){
+            if(!user){
                 return false;
             }
             var res = _runCallback.call(this, 'canSendInvitation', joiningName, user);

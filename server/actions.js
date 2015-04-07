@@ -11,7 +11,7 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         joinSendInvitation: function(joiningName, toUser, originator){
-            toUser = UniUsers.ensureUniUser(toUser || null);
+            toUser = UniUsers.ensureUniUser(toUser||null);
             originator = UniUsers.ensureUniUser(originator);
             if(this.joinIsJoined(joiningName, toUser)){
                 throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
@@ -24,13 +24,8 @@ UniAnyJoin._addServerActions = function(collection){
             }
             var lastJoiningDoc = this.joinGetRow(joiningName, toUser);
             var doc = this;
-            if(_.isObject(lastJoiningDoc)){
-                switch(lastJoiningDoc.status){
-                    case UniAnyJoin.STATUS_INVITED:
-                        return false;
-                    case UniAnyJoin.STATUS_REQUESTED:
-                        return doc.joinAcceptRequest(joiningName, toUser, originator);
-                }
+            if(_.isObject(lastJoiningDoc) && lastJoiningDoc.status === UniAnyJoin.STATUS_REQUESTED){
+                return doc.joinAcceptRequest(joiningName, toUser, originator);
             }
             var insertRes = UniAnyJoin.insert({
                 joiningName: joiningName,

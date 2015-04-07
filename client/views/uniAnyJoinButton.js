@@ -33,7 +33,7 @@ Template.uniAnyJoinButton.helpers({
     },
     getJoiningName: function(){
         var data = findSubjectIdAndName(Template.instance());
-        return data.subjectName;
+        return data.joiningName;
     }
 });
 
