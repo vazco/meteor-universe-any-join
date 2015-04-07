@@ -24,7 +24,8 @@ Package.onUse(function (api) {
 
     api.use([
         'templating',
-        'less'
+        'less',
+        'check'
     ], 'client');
 
     api.use('vazco:universe-ui@0.5.0', 'client', {weak: true});

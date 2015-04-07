@@ -185,7 +185,7 @@ This package provides four publications of universe.
 - uniAnyJoinUsersToAccept
 - uniAnyJoinSearchUsers
 
-They are made by universe access package, so you can replace them by define self with option override: true. Additionally you can using allow/deny publish manipulate of permissions for published documents.
+They are made by universe access package, so you can replace them by define self with option override: true. Additionally you can using allow/deny publish, to manipulate of permissions for published documents.
 details [here](https://atmospherejs.com/vazco/universe-access)
 
 
