@@ -14,7 +14,7 @@ var apiUseCommon = [
     'vazco:universe-access@1.1.3',
     'aldeed:simple-schema@1.3.2',
     'aldeed:collection2@2.3.3',
-    'anti:i18n'
+    'anti:i18n@0.4.3'
 ];
 
 Package.onUse(function (api) {
