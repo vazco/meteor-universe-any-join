@@ -15,6 +15,7 @@ i18n.map('en', {
         joinInvite: 'Invite',
         noInvitations: 'There are no current invitations.',
         loading: 'Loading',
+        searchUser: 'Search user',
         errors:{
             userAlreadyJoined: 'User already is joined to this entity',
             missingJoiningRequest: 'Joining request cannot be found',

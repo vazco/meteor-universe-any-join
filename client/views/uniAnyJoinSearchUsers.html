@@ -12,6 +12,10 @@ this template must be launched with required parameters:
         <ul class="list-group uni-any-join-list">
             {{#each getUsers}}
                 {{> uniAnyJoinSearchUsersResultItem subject=getSubject user=.}}
+                {{else}}
+                {{#if defaultTemplateOnNoResult}}
+                    {{> Template.dynamic template=defaultTemplateOnNoResult}}
+                {{/if}}
             {{/each}}
         </ul>
     {{else}}
@@ -21,7 +25,7 @@ this template must be launched with required parameters:
 
 <template name="uniAnyJoinSearchUsersInput">
     <div class="input-group">
-        <input type="text" class="js-any-join-search-users maa form-control"/>
+        <input type="text" class="js-any-join-search-users maa form-control" placeholder="{{i18n 'anyJoin.searchUser'}}"/>
     </div>
 </template>
 

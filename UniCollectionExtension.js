@@ -157,7 +157,7 @@ var _addJoiningHelpersToDocument = function(collection){
          * logic can be changed by callback 'canSendInvitation'
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
-         * @param user {UniUsers.UniUser|String} owner of subject or admin, ( caller )
+         * @param user {UniUsers.UniUser|String=} owner of subject or admin, ( caller )
          * @returns {boolean}
          */
         joinCanSendInvitation: function(joiningName, user){
@@ -195,7 +195,7 @@ var _addJoiningHelpersToDocument = function(collection){
          * logic can be changed by callback 'canAcceptRequest'
          * @memberof UniCollection.UniDoc#
          * @param joiningName {String} kind of joining
-         * @param acceptor {UniUsers.UniUser|String} owner of subject or admin, ( caller )
+         * @param acceptor {UniUsers.UniUser|String=} owner of subject or admin, ( caller )
          * @returns {boolean}
          */
         joinCanAcceptRequest: function(joiningName, acceptor){
