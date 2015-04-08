@@ -3,7 +3,8 @@
 Package.describe({
     name: 'vazco:universe-any-join',
     summary: 'join to any document',
-    version: '1.0.1'
+    version: '1.0.1',
+    git: 'https://github.com/vazco/meteor-universe-any-join'
 });
 
 var apiUseCommon = [
