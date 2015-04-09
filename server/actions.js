@@ -213,6 +213,52 @@ UniAnyJoin._addServerActions = function(collection){
                 _runCallback.call(this, 'onResign', joiningName, lastJoiningDoc.findSelf(), user, acceptor);
                 return updateRes;
             }
+        },
+        /**
+         * Returns Possessors of entries for current subject
+         * @param joiningName name of join
+         * @param statuses {String|Array=undefined} Array with statuses, for that we looking for
+         * @param caller user who wants data
+         * @param additionalSelector {Object=} additional selector for finding users.
+         * @param findOptions {Object=} options for find method of users, as a default methods returns user with fields
+         * { username: 1, profile:1 , createdAt:1, is_admin: 1, permissions:1 }
+         * @returns {[UniUsers.UniUser]}
+         */
+        joinGetPossessorsOfEntries: function(joiningName, statuses, caller, additionalSelector, findOptions){
+            caller = UniUsers.ensureUniUser(caller);
+            if(_.isString(statuses)){
+                statuses = [statuses];
+            }
+            if(!this.joinCanGetPossessorsOfEntries(joiningName, statuses, caller)){
+                throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
+            }
+            var query = {
+                joiningName: joiningName, subjectId: this._id, subjectCollectionName: this.getCollectionName()
+            };
+            if(_.isArray(statuses) && statuses.length){
+                check(statuses, [String]);
+                _.each(statuses, function(status){
+                    check(status, Math.OneOf(
+                        UniAnyJoin.STATUS_INVITED,
+                        UniAnyJoin.STATUS_JOINED,
+                        UniAnyJoin.STATUS_REJECTED,
+                        UniAnyJoin.STATUS_REQUESTED
+                    ))
+                });
+                query = {$and: [query, {status: {$in: statuses}}]};
+            }
+            if(additionalSelector){
+                query = {$and: [query, additionalSelector]};
+            }
+            if(!findOptions){
+                findOptions = {};
+            }
+            findOptions.fields = findOptions.fields || { username: 1, profile:1, createdAt:1, is_admin: 1, permissions:1 };
+            var possessorsIds = UniAnyJoin.find(query, {fields: {possessorId:1}})
+                .map(function(entry){ return entry.possessorId });
+            if(_.isArray(possessorsIds) && possessorsIds.length){
+                return UniUsers.find({_id: {$in: _.uniq(possessorsIds)} }, findOptions).fetch();
+            }
         }
     };
 
@@ -254,6 +300,11 @@ Meteor.methods({
         check(this.userId, String);
         var subject = _getSubjectDocument(collectionName, subjectId);
         return subject.joinResign(joiningName, userId, this.userId);
+    },
+    'UniAnyJoin/joinGetPossessorsOfEntries': function(joiningName, collectionName, subjectId, statuses){
+        check(this.userId, Match.OneOf(undefined, null, [String], String));
+        var subject = _getSubjectDocument(collectionName, subjectId);
+        return subject.joinGetPossessorsOfEntries(joiningName, statuses, this.userId);
     }
 });
 

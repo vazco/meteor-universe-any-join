@@ -164,6 +164,7 @@ After you attached AnyJoin functionality on every document from joinable collect
     - **joinChangePolicy(joiningName, type, {acceptor/callback})** Sets policy of joining, allowed types:
     *UniAnyJoin.TYPE_JOIN_REQUEST, UniAnyJoin.TYPE_JOIN_INVITATION, UniAnyJoin.TYPE_JOIN_OPEN*
     - **joinResign(joiningName, user, {acceptor/callback})** Resigns from joining, rejects user request or invitation
+    - **joinGetPossessorsOfEntries(joiningName, statuses, usersAdditionalSelector, {caller, usersFindOptions/callback})** Gets array of users (can be filtering by statuses)
 
 ## Templates & Publications
 

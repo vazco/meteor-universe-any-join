@@ -278,6 +278,21 @@ var _addJoiningHelpersToDocument = function(collection){
             if(doc && doc.possessorId === acceptor._id){
                 return true;
             }
+        },
+        /**
+         * Checks if user can gets possessors
+         * @param joiningName
+         * @param statuses {[String]} array of status: UniAnyJoin.STATUS_*
+         * @param caller {UniUsers.UniUser=} on client default is logged in user.
+         * @returns {boolean}
+         */
+        joinCanGetPossessorsOfEntries: function(joiningName, statuses, caller){
+            caller = UniUsers.ensureUniUser(caller);
+            var res = _runCallback.call(this, 'canGetPossessorsOfEntries', joiningName, statuses, caller);
+            if(_.isBoolean(res)){
+                return res;
+            }
+            return caller && (this.ownerId === caller._id || caller.isAdmin());
         }
     };
 

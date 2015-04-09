@@ -212,7 +212,7 @@ Meteor.call('test_anyjoin_cleanup', function(){
         });
 
     });
-    Tinytest.addAsync('Universe Any Join - test helpers for some user', function (test, onClomplete) {
+    Tinytest.addAsync('Universe Any Join - test helpers for some user', function (test, onComplete) {
         prepareData(function () {
             var testNo = 2;
             if (Meteor.isServer) {
@@ -229,7 +229,7 @@ Meteor.call('test_anyjoin_cleanup', function(){
             test.isFalse(doc.joinCanAcceptRequest('test',user), 'some user joinCanAcceptRequest');
             test.isFalse(doc.joinIsUserInvited('test',user), 'some user joinIsUserInvited');
             test.isFalse(doc.joinIsRequestSent('test',user), 'some user joinIsRequestSent');
-            cleanUpData(onClomplete);
+            cleanUpData(onComplete);
         });
     });
 

@@ -13,7 +13,7 @@ UniAnyJoin._addClientActions = function(collection){
          * @returns {*}
          */
         joinSendInvitation: function(joiningName, toUser, cb){
-            cb = cb || function(err){ if(err){ console.error(err); } };
+            cb = getCallback(arguments);
             toUser = UniUsers.ensureUniUser(toUser);
             if(this.joinIsJoined(joiningName, toUser)){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
@@ -33,7 +33,7 @@ UniAnyJoin._addClientActions = function(collection){
          * @returns {*}
          */
         joinSendRequest: function(joiningName, cb){
-            cb = cb || function(err){ if(err){ console.error(err); } };
+            cb = getCallback(arguments);
             var fromUser = UniUsers.getLoggedIn();
             if(fromUser && this.joinIsJoined(joiningName, fromUser)){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
@@ -53,7 +53,7 @@ UniAnyJoin._addClientActions = function(collection){
          * @returns {*}
          */
         joinAcceptRequest: function(joiningName, fromUser, cb){
-            cb = cb || function(err){ if(err){ console.error(err.message); } };
+            cb = getCallback(arguments);
             if(this.joinIsJoined(joiningName, fromUser)){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
             }
@@ -71,7 +71,7 @@ UniAnyJoin._addClientActions = function(collection){
          * @returns {*}
          */
         joinAcceptInvitation: function(joiningName, cb){
-            cb = cb || function(err){ if(err){console.error(err);} };
+            cb = getCallback(arguments);
             if(this.joinIsJoined(joiningName, UniUsers.getLoggedIn())){
                 cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
             }
@@ -87,7 +87,10 @@ UniAnyJoin._addClientActions = function(collection){
          * @returns {*}
          */
         join: function(joiningName, userId, cb){
-            cb = cb || function(err){ if(err){console.error(err);} };
+            cb = getCallback(arguments);
+            if(_.isFunction(userId)){
+                userId = UniUsers.getLoggedInId();
+            }
             userId = UniUtils.getIdIfDocument(userId) || UniUser.getLoggedInId();
             if(this.joinGetPolicy(joiningName) === UniAnyJoin.TYPE_JOIN_OPEN){
                 return Meteor.call('UniAnyJoin/join', joiningName, collection._name, this._id, userId, cb);
@@ -107,7 +110,7 @@ UniAnyJoin._addClientActions = function(collection){
          * @returns {*}
          */
         joinChangePolicy: function(joiningName, type, cb){
-            cb = cb || function(err){ if(err){console.error(err);} };
+            cb = getCallback(arguments);
             var user = UniUsers.getLoggedIn();
             if(user && this.joinCanChangePolicy(joiningName, user)){
                 return Meteor.call('UniAnyJoin/joinChangePolicy', joiningName, collection._name, this._id, type, cb);
@@ -118,19 +121,48 @@ UniAnyJoin._addClientActions = function(collection){
          * Resigns from joining, rejects user request or invitation
          * On server side will be called method joinCanResign
          * @memberof UniCollection.UniDoc#
-         * @param joiningName {String=} kind of joining default loggedIn user
+         * @param joiningName {String} kind of joining
          * @param user {UniUsers.UniUser|String} possessor of joining
          * @param cb {Function} callback on done
          * @returns {*}
          */
         joinResign: function(joiningName, user, cb){
-            if(!user){
+            if(!user || _.isFunction(user)){
                 user = UniUsers.getLoggedIn();
             }
-            cb = cb || function(err){ if(err){console.error(err);} };
+            cb = getCallback(arguments);
             user = UniUsers.ensureUniUser(user);
             if(user && this.joinCanResign(joiningName, UniUsers.getLoggedIn(), user)){
                 return Meteor.call('UniAnyJoin/joinResign', joiningName, collection._name, this._id, user._id, cb);
+            }
+            cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
+        },
+        /**
+         * Gets entries possessors of current subject
+         * @param joiningName kind of joining
+         * @param statuses {[String]|String=} filtering by type or types, it accept all: UniAnyJoin.STATUS_*
+         * @param usersAdditionalSelector {Object=}
+         * @param cb callback with result (err, [UniUsers.UniUser,...])
+         * @returns {any}
+         */
+        joinGetPossessorsOfEntries: function(joiningName, statuses, usersAdditionalSelector, cb){
+            cb = getCallback(arguments);
+            if(!_.isArray(statuses) && !_.isString(statuses)){
+                statuses = undefined;
+            }
+            if(!_.isObject(usersAdditionalSelector)){
+                usersAdditionalSelector = undefined;
+            }
+            if(this.joinCanGetPossessorsOfEntries(joiningName, statuses, UniUsers.getLoggedIn())){
+                return Meteor.call(
+                    'UniAnyJoin/joinGetPossessorsOfEntries',
+                    joiningName,
+                    collection._name,
+                    this._id,
+                    statuses,
+                    usersAdditionalSelector,
+                    cb
+                );
             }
             cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
         }
@@ -138,4 +170,12 @@ UniAnyJoin._addClientActions = function(collection){
     };
 
     collection.helpers(helpers);
+};
+
+var getCallback = function(args){
+    args = Array.prototype.slice.call(args, 1);
+    if (args.length && typeof args[args.length - 1] === 'function') {
+        return args.pop();
+    }
+    return function(err){ if(err){ console.error(err); } };
 };
