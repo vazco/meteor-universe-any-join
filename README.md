@@ -152,6 +152,9 @@ After you attached AnyJoin functionality on every document from joinable collect
     - **joinIsUserInvited(joiningName, userId)** Checks if user is invited to subject
     - **joinIsRequestSent(joiningName, userId)** Checks if is waiting request
     - **joinCanResign(joiningName, acceptor, use)** Checks if user can resign/reject invitation/request or leave subject
+    - **joinCanGetPossessorsOfEntries: function(joiningName, statuses, caller)** Checks if user can gets possessors,
+    you can use statuses to filter possessors of selected statuses.
+    Possible statuses: UniAnyJoin.STATUS_JOINED, UniAnyJoin.STATUS_INVITED, UniAnyJoin.STATUS_REQUESTED, UniAnyJoin.STATUS_REJECTED
 
 - Different implementation client/server
 #### On server additionally last parameter is the user context to execute method, but on client is callback ####

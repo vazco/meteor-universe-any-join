@@ -282,7 +282,7 @@ var _addJoiningHelpersToDocument = function(collection){
         /**
          * Checks if user can gets possessors
          * @param joiningName
-         * @param statuses {[String]} array of status: UniAnyJoin.STATUS_*
+         * @param statuses {[String]=} array of status: UniAnyJoin.STATUS_*
          * @param caller {UniUsers.UniUser=} on client default is logged in user.
          * @returns {boolean}
          */
