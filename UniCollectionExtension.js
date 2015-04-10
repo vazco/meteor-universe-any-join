@@ -139,7 +139,6 @@ var _addJoiningHelpersToDocument = function(collection){
             if(_.isBoolean(res)){
                 return res;
             }
-            console.log(doc, userId);
             return doc && doc.status === UniAnyJoin.STATUS_JOINED;
         },
         /**

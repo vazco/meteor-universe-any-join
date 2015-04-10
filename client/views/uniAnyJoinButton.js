@@ -34,11 +34,7 @@ Template.uniAnyJoinButton.helpers({
     getJoiningName: function(){
         var data = findSubjectIdAndName(Template.instance());
         return data.joiningName;
-    },
-    //isJoined: function(){
-    //    var data = findSubjectIdAndName(Template.instance());
-    //    return this.isJoined(data.joiningName);
-    //}
+    }
 });
 
 var _cb = function(err){
