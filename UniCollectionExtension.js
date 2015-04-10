@@ -35,12 +35,21 @@ UniCollection.prototype.attachAnyJoin = function(joiningName, cbs){
 };
 
 UniAnyJoin._addToSchemaJoiningFields = function(collection, joiningName){
+    var joiningPolicyPropertyName = '_joiningPolicy_'+joiningName;
+    collection.deny({
+        update: function(userId, doc, fields){
+            if(_.contains(fields, joiningPolicyPropertyName)){
+                if(!doc.joinCanChangePolicy(joiningName, userId)){
+                    return true;
+                }
+            }
+        }
+    });
     if(collection.simpleSchema){
         var sObject;
         try{
             sObject = collection.simpleSchema().schema();
         } catch(e){ SimpleSchema.debug && console.log('Collection "'+collection._name+'" has no simpleSchema'); }
-        var joiningPolicyPropertyName = '_joiningPolicy_'+joiningName;
         var allowedValues = [
             UniAnyJoin.TYPE_JOIN_REQUEST,
             UniAnyJoin.TYPE_JOIN_INVITATION,
@@ -63,6 +72,7 @@ UniAnyJoin._addToSchemaJoiningFields = function(collection, joiningName){
                     }
                 },
                 label: i18n('anyJoin.policyLabel', joiningName),
+                optional: true,
                 autoform: {
                     options: _.object(allowedValues, labels)
                 }
