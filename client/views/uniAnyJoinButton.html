@@ -1,6 +1,7 @@
 <template name="uniAnyJoinButton">
     {{#if Template.subscriptionsReady}}
         {{#with getSubject}}
+
            {{#if joinIsJoined getJoiningName}}
                <button class="btn btn-warning js-uaj-leave {{../classes}}">{{i18n 'anyJoin.leave'}}</button>
            {{else}}

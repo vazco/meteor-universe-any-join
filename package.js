@@ -10,8 +10,9 @@ Package.describe({
 var apiUseCommon = [
     'underscore',
     'check',
-    'vazco:universe-utilities@1.0.6',
-    'vazco:universe-collection@1.1.5',
+    'templating',
+    'vazco:universe-utilities@1.0.8',
+    'vazco:universe-collection@1.1.6',
     'vazco:universe-access@1.1.3',
     'aldeed:simple-schema@1.3.2',
     'aldeed:collection2@2.3.3',
