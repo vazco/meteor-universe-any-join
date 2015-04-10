@@ -16,6 +16,13 @@ i18n.map('en', {
         noInvitations: 'There are no current invitations.',
         loading: 'Loading',
         searchUser: 'Search user',
+        types: {
+            join_request: 'Approving the requests',
+            join_invitation: 'Only on invitation',
+            join_open: 'Anyone can join with'
+
+        },
+        policyLabel: 'Policy of joining for {$1}',
         errors:{
             userAlreadyJoined: 'User already is joined to this entity',
             missingJoiningRequest: 'Joining request cannot be found',

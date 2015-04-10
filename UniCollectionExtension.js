@@ -46,6 +46,7 @@ UniAnyJoin._addToSchemaJoiningFields = function(collection, joiningName){
             UniAnyJoin.TYPE_JOIN_INVITATION,
             UniAnyJoin.TYPE_JOIN_OPEN
         ];
+        var labels = _(allowedValues).map(function(v){return i18n('anyJoin.types.'+v);});
         if(_.size(sObject) && !sObject[joiningPolicyPropertyName]){
             //adds configuration of policy, field to schema
             sObject[joiningPolicyPropertyName] = {
@@ -60,6 +61,10 @@ UniAnyJoin._addToSchemaJoiningFields = function(collection, joiningName){
                         }
                         return res || this.value || UniAnyJoin.TYPE_JOIN_REQUEST;
                     }
+                },
+                label: i18n('anyJoin.policyLabel', joiningName),
+                autoform: {
+                    options: _.object(allowedValues, labels)
                 }
             };
             collection.attachSchema(new SimpleSchema(sObject));
