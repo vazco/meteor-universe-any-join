@@ -77,7 +77,7 @@ UniAnyJoin._addToSchemaJoiningFields = function(collection, joiningName){
                     options: _.object(allowedValues, labels)
                 }
             };
-            collection.attachSchema(new SimpleSchema(sObject));
+            collection.attachSchema(new SimpleSchema(sObject), {replace: true});
             return 'simpleSchema';
         }
     }
