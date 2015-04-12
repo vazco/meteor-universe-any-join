@@ -91,8 +91,8 @@ UniCollection.publish('uniAnyJoinSearchUsers', function(term, joiningName, subje
     check(subjectId, String);
     var coll = UniAnyJoin.getSubjectCollection(subjectName);
     var doc = coll.findOne({_id: subjectId});
-    if(!coll || (!doc.joinCanAcceptRequest(joiningName, UniUsers.getLoggedIn()) &&
-        !doc.joinCanSendInvitation(joiningName, UniUsers.getLoggedIn()))){
+    if(!doc.joinCanAcceptRequest(joiningName, UniUsers.getLoggedIn()) &&
+        !doc.joinCanSendInvitation(joiningName, UniUsers.getLoggedIn())){
         this.ready();
     }
     this.setMappings(UniUsers,[
@@ -104,7 +104,6 @@ UniCollection.publish('uniAnyJoinSearchUsers', function(term, joiningName, subje
 
         }
     ]);
-
-    return UniUsers.find({'profile.name': UniUtils.getInSensitiveRegExpForTerm(term)}, {fields: {profile:1}, limit: 50});
+    return UniUsers.find({'profile.name': UniUtils.getInSensitiveRegExpForTerm(term)}, {fields: {_id: 1, profile:1}, limit: 50});
 });
 

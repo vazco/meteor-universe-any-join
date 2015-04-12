@@ -20,12 +20,12 @@ Template.uniAnyJoinSearchUsers.onCreated(function(){
 
 var _autoSearchTimer;
 Template.uniAnyJoinSearchUsersInput.events({
-    'keyup .js-any-join-search-users': function (e){
+    'keyup .js-any-join-search-users': function (e, tmpl){
         e.stopPropagation();
-        var tmpl = UniUtils.getParentTemplateInstance('uniAnyJoinSearchUsers');
-        var joiningName = UniUtils.get(this, 'data.joiningName');
-        var subjectId = UniUtils.get(this, 'data.subjectId');
-        var subjectName = UniUtils.get(this, 'data.subjectName');
+        tmpl = UniUtils.getParentTemplateInstance('uniAnyJoinSearchUsers', tmpl);
+        var joiningName = UniUtils.get(tmpl, 'data.joiningName');
+        var subjectId = UniUtils.get(tmpl, 'data.subjectId');
+        var subjectName = UniUtils.get(tmpl, 'data.subjectName');
         var subFn = function(term){
             if(tmpl.subscribeHandler){
                 tmpl.subscribeHandler.stop();
