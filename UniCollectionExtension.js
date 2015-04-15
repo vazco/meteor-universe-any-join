@@ -66,7 +66,7 @@ UniAnyJoin._addToSchemaJoiningFields = function(collection, joiningName){
                         var res;
                         var cb = UniUtils.get(collection, '_joiningCallbacks.'+joiningName+'.onGetDefaultPolicy');
                         if(_.isFunction(cb)){
-                            res = cb.apply(this, joiningName, collection);
+                            res = cb.call(this, joiningName, collection);
                         }
                         return res || this.value || UniAnyJoin.TYPE_JOIN_REQUEST;
                     }
