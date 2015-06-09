@@ -77,7 +77,7 @@ var getAnyJoinEntry = function(tmpl, user){
         {joiningName: joiningName},
         {subjectId: subjectId},
         {possessorId: user._id}
-    ]});
+    ]}, {sort: {createdAt: -1}});
 };
 
 Template.uniAnyJoinSearchUsersResultItem.helpers({
