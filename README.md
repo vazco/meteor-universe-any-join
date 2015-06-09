@@ -177,6 +177,7 @@ This package provide pre prepared templates which are ready to use.
 - `{{> uniAnyJoinInvitations}}` listing of invitations for current logged in user
 - `{{> uniAnyJoinSearchUsers joiningName subjectId subjectName}}` search list of users with buttons for management of invitation, joins, requests
 - `{{> uniAnyJoinPossessorsList joiningName subjectId subjectName}}` listing of users which need acceptance of joining requests and invitations which are waiting for them.
+- `{{> uniAnyJoinButton joiningName subjectId subjectName}}` send request button, leave button, accept invitation button
 
 joiningName - name of joining like members, subjectName - name of subject collection, subjectId - id of document.
 
