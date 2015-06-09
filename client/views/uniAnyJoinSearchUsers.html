@@ -12,7 +12,7 @@ this template must be launched with required parameters:
         <ul class="list-group uni-any-join-list">
             {{#each getUsers}}
                 {{> uniAnyJoinSearchUsersResultItem subject=getSubject user=.}}
-                {{else}}
+            {{else}}
                 {{#if defaultTemplateOnNoResult}}
                     {{> Template.dynamic template=defaultTemplateOnNoResult}}
                 {{/if}}
@@ -40,24 +40,28 @@ this template must be launched with required parameters:
         </a>
         {{#with getAnyJoinEntry}}
             {{#if eq status UniAnyJoin.STATUS_JOINED}}
-                <span class="list-menu-items btn btn-danger js-uni-any-join-resign">{{i18n 'anyJoin.joinReject'}}</span>
+                {{#if canAcceptRequest}}
+                    <span class="list-menu-items btn btn-danger js-uni-any-join-resign">{{i18n 'anyJoin.joinReject'}}</span>
+                {{/if}}
                 <span class="list-menu-items btn">{{i18n 'anyJoin.joined'}}</span>
-                {{else}}
+            {{else}}
                 {{#if eq status UniAnyJoin.STATUS_INVITED}}
                     <span class="list-menu-items btn btn-danger js-uni-any-join-resign">{{i18n 'anyJoin.joinCancel'}}</span>
                     <span class="list-menu-items btn">{{i18n 'anyJoin.invited'}}</span>
-                    {{else}}
+                {{else}}
                     {{#if isRequested}}
-                        <span class="list-menu-items btn btn-primary js-uni-any-join-accept-request">{{i18n 'anyJoin.joinAcceptRequest'}}</span>
-                        <span class="list-menu-items btn btn-danger js-uni-any-join-resign">{{i18n 'anyJoin.joinReject'}}</span>
-                        {{else}}
+                        {{#if canAcceptRequest}}
+                            <span class="list-menu-items btn btn-primary js-uni-any-join-accept-request">{{i18n 'anyJoin.joinAcceptRequest'}}</span>
+                            <span class="list-menu-items btn btn-danger js-uni-any-join-resign">{{i18n 'anyJoin.joinReject'}}</span>
+                        {{/if}}
+                    {{else}}
                         {{#if canBeInvited}}
                             <span title="{{formatDateMoment createdAt}}" class="list-menu-items btn btn-primary js-uni-any-join-invite">{{i18n 'anyJoin.joinInvite'}}</span>
                         {{/if}}
                     {{/if}}
                 {{/if}}
             {{/if}}
-            {{else}}
+        {{else}}
             {{#if canBeInvited}}
                 <span class="list-menu-items btn btn-primary js-uni-any-join-invite">{{i18n 'anyJoin.joinInvite'}}</span>
             {{/if}}
