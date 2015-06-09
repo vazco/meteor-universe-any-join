@@ -106,6 +106,18 @@ Template.uniAnyJoinSearchUsersResultItem.helpers({
         var col = UniAnyJoin.getSubjectCollection(subjectName);
         var subject = col.findOne({_id: subjectId});
         return subject.joinCanSendInvitation(joiningName);
+    },
+    canAcceptRequest: function () {
+        var tmpl = UniUtils.getParentTemplateInstance('uniAnyJoinSearchUsers');
+        var subjectName = UniUtils.get(tmpl, 'data.subjectName');
+        var subjectId = UniUtils.get(tmpl, 'data.subjectId');
+        var joiningName = UniUtils.get(tmpl, 'data.joiningName');
+        if(!subjectName || !subjectId || !joiningName){
+            return;
+        }
+        var col = UniAnyJoin.getSubjectCollection(subjectName);
+        var subject = col.findOne({_id: subjectId});
+        return subject.joinCanAcceptRequest(joiningName);
     }
 });
 
