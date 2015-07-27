@@ -166,7 +166,7 @@ var _addJoiningHelpersToDocument = function(collection){
                 return true;
             }
             var acceptor = UniUsers.ensureUniUser(acceptorId);
-            if(acceptor && (acceptor === this.ownerId || acceptor.isAdmin())){
+            if(acceptor && (acceptor._id === this.ownerId || acceptor.isAdmin())){
                 return true;
             }
             return this.joinGetPolicy(joiningName) === UniAnyJoin.TYPE_JOIN_OPEN;
