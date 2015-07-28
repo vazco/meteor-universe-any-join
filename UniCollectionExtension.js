@@ -34,6 +34,24 @@ UniCollection.prototype.attachAnyJoin = function(joiningName, cbs){
     }
 };
 
+/**
+ * Add callback. If there is callback, wraps it.
+ *
+ * @param joiningName {String} Name of joining (Collection can have many joining types)
+ * @param event {{onInvitation,onRequest,onAcceptRequest,onAcceptInvitation,onJoin,onResign,onGetDefaultPolicy
+ * canResign,canChangePolicy,canAcceptRequest,canSendRequest,canSendInvitation,canJoinDirectly,isJoined}=}
+ * @param callback {Function} New callback
+ */
+UniCollection.prototype.addAnyJoinCallback = function (joiningName, event, callback) {
+    var previous = this.__joiningCallbacks[event];
+
+    if (previous) {
+        this.__joiningCallbacks[event] = _.wrap(previous, callback);
+    } else {
+        this.__joiningCallbacks[event] = callback;
+    }
+};
+
 UniAnyJoin._addToSchemaJoiningFields = function(collection, joiningName){
     var joiningPolicyPropertyName = '_joiningPolicy_'+joiningName;
     collection.deny({
