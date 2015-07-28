@@ -43,12 +43,23 @@ UniCollection.prototype.attachAnyJoin = function(joiningName, cbs){
  * @param callback {Function} New callback
  */
 UniCollection.prototype.addAnyJoinCallback = function (joiningName, event, callback) {
-    var previous = this.__joiningCallbacks[event];
+    check(event, String);
+    check(joiningName, String);
+    check(this._joiningCallbacks, Object);
+
+    var previous = UniUtils.get(this, '_joiningCallbacks.' + joiningName + '.' + event);
+
+    if (!this._joiningCallbacks[joiningName]) {
+        throw new Error('AnyJoin not attached yet.');
+    }
 
     if (previous) {
-        this.__joiningCallbacks[event] = _.wrap(previous, callback);
+        this._joiningCallbacks[joiningName][event] = function () {
+            previous.apply(this, arguments);
+            callback.apply(this, arguments);
+        };
     } else {
-        this.__joiningCallbacks[event] = callback;
+        this._joiningCallbacks[joiningName][event] = callback;
     }
 };
 
