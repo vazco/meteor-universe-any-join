@@ -52,6 +52,17 @@ yourCollection.attachAnyJoin(name, callbacks);
 - **callbacks** Using this parameter you can define your own logic of access policy for each 'can*' methods.
     Additionally you can define reaction, which will be executed after actions.
 
+## Adding new callback.
+If there is callback, wraps it.
+
+```
+yourCollection.addAnyJoinCallback(name, event, callback);
+```
+
+- **name** It's a joining name, because you can attach many of joins on single collection. This name will be used to recognize joining.
+- **event** Event we are listening to.
+- **callback** Callback.
+
 
 ### Callbacks for access control
 ###### ( available anywhere ) ######
