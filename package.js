@@ -3,7 +3,7 @@
 Package.describe({
     name: 'vazco:universe-any-join',
     summary: 'Add functionality of join to any universe document for users, by invitation, request, open to join',
-    version: '1.0.9',
+    version: '1.1.0',
     git: 'https://github.com/vazco/meteor-universe-any-join'
 });
 
