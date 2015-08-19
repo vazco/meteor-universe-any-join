@@ -10,7 +10,7 @@ UniAnyJoin.STATUS_REQUESTED = 'requested'; // sent request
 UniAnyJoin.STATUS_REJECTED = 'rejected'; // sent request
 
 
-UniAnyJoin.attachSchema(new SimpleSchema({
+UniAnyJoin.setSchema(new SimpleSchema({
         joiningName: {
             type: String
         },
@@ -20,10 +20,10 @@ UniAnyJoin.attachSchema(new SimpleSchema({
         subjectCollectionName: {
             type: String
         },
-        possessorId:{
+        possessorId: {
             type: String
         },
-        status:{
+        status: {
             type: String,
             allowedValues: [
                 UniAnyJoin.STATUS_JOINED,
@@ -42,7 +42,7 @@ UniAnyJoin.attachSchema(new SimpleSchema({
         },
         originatorId: {
             type: String,
-            autoValue: function() {
+            autoValue: function () {
                 if (this.isInsert || this.isUpsert) {
                     return this.value || this.userId;
                 }
@@ -52,7 +52,7 @@ UniAnyJoin.attachSchema(new SimpleSchema({
         },
         createdAt: {
             type: Date,
-            autoValue: function() {
+            autoValue: function () {
                 if (this.isInsert) {
                     return new Date();
                 }
@@ -69,14 +69,12 @@ UniAnyJoin.attachSchema(new SimpleSchema({
 UniAnyJoin.setDefaultSort({createdAt: -1});
 
 UniAnyJoin.allow({
-    publish: function(userId, doc, publicationName){
-        if(userId){
-            return publicationName === 'uniAnyJoin' || publicationName === 'uniAnyJoinUsersToAccept';
-        }
+    publish: function (userId, doc, publicationName) {
+        return userId;
     }
 });
 
-var _no = function(){
+var _no = function () {
     "use strict";
     return true;
 };
@@ -94,32 +92,32 @@ UniAnyJoin._collections = {};
  * @param name name of collection
  * @returns {UniCollection#}
  */
-UniAnyJoin.getSubjectCollection = function(name){
+UniAnyJoin.getSubjectCollection = function (name) {
     "use strict";
     return name && UniAnyJoin._collections[name];
 };
 
 UniAnyJoin.helpers({
-    getSubject: function(options){
+    getSubject: function (options) {
         "use strict";
         var coll = UniAnyJoin.getSubjectCollection(this.subjectCollectionName);
         var doc = coll.findOne({_id: this.subjectId}, options || {});
         return coll.ensureUniDoc(doc);
     },
-    getSubjectCollection: function(){
+    getSubjectCollection: function () {
         "use strict";
-        return  UniAnyJoin.getSubjectCollection(this.subjectCollectionName);
+        return UniAnyJoin.getSubjectCollection(this.subjectCollectionName);
     },
-    getPossessorOfEntry: function(options){
+    getPossessorOfEntry: function (options) {
         "use strict";
         return UniUsers.findOne({_id: this.possessorId}, options || {});
     },
-    getOriginatorOfEntry: function(options){
+    getOriginatorOfEntry: function (options) {
         "use strict";
         return this.originatorId && UniUsers.findOne({_id: this.originatorId}, options || {});
     },
-    getAcceptorOfEntry: function(options){
+    getAcceptorOfEntry: function (options) {
         "use strict";
-        return this.acceptorId && UniUsers.findOne({_id: this.acceptorId},options || {});
+        return this.acceptorId && UniUsers.findOne({_id: this.acceptorId}, options || {});
     }
 });

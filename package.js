@@ -11,11 +11,9 @@ var apiUseCommon = [
     'underscore',
     'check',
     'templating',
-    'vazco:universe-utilities@1.0.8',
-    'vazco:universe-collection@1.1.6',
-    'vazco:universe-access@1.1.3',
-    'aldeed:simple-schema@1.3.2',
-    'aldeed:collection2@2.3.3',
+    'vazco:universe-utilities@1.2.1',
+    'vazco:universe-collection@1.7.5',
+    'vazco:universe-access@1.5.2',
     'anti:i18n@0.4.3'
 ];
 
@@ -30,7 +28,7 @@ Package.onUse(function (api) {
         'check'
     ], 'client');
 
-    api.use('vazco:universe-ui@0.5.0', 'client', {weak: true});
+    api.use('vazco:universe-ui@0.6.2', 'client', {weak: true});
 
     api.add_files([
         'UniAnyJoin.js',

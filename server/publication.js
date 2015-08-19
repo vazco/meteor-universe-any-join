@@ -1,7 +1,7 @@
 'use strict';
 
-UniCollection.publish('uniAnyJoinMyInvitations', function(){
-    if(!UniUsers.getLoggedInId()){
+UniCollection.publish('uniAnyJoinMyInvitations', function () {
+    if (!UniUsers.getLoggedInId()) {
         return this.ready();
     }
     var subjects = {};
@@ -10,39 +10,39 @@ UniCollection.publish('uniAnyJoinMyInvitations', function(){
         possessorId: UniUsers.getLoggedInId(),
         status: UniAnyJoin.STATUS_INVITED
     }).observeChanges({
-        added: function(id, doc){
+        added: function (id, doc) {
             var col = UniAnyJoin.getSubjectCollection(doc.subjectCollectionName);
-            if(col){
+            if (col) {
                 //Tried get name or title
-                var subject = col.findOne({_id: doc.subjectId}, {fields:{title:1, name:1}});
+                var subject = col.findOne({_id: doc.subjectId}, {fields: {title: 1, name: 1}});
                 subjects[id] = {
-                    id:   subject._id,
+                    id: subject._id,
                     colName: subject.name
                 };
                 sub.added(subject.name, subject._id, doc);
             }
             sub.added(UniAnyJoin._name, id, doc);
         },
-        removed: function(id){
+        removed: function (id) {
             sub.removed(UniAnyJoin._name, id);
-            if(subjects[id]){
+            if (subjects[id]) {
                 sub.removed(subjects[id].colName, subjects[id].id);
                 delete subjects[id];
             }
         }
     });
     this.ready();
-    this.onStop(function(){
+    this.onStop(function () {
         handl.stop();
     });
 });
 
-UniCollection.publish('uniAnyJoin', function(subjectId, subjectName){
-    if(!subjectId || !UniUsers.getLoggedInId()){
+UniCollection.publish('uniAnyJoin', function (subjectId, subjectName) {
+    if (!subjectId || !UniUsers.getLoggedInId()) {
         this.ready();
     }
-    if(subjectName && UniAnyJoin.getSubjectCollection(subjectName)){
-        this.setMappings(UniAnyJoin,[
+    if (subjectName && UniAnyJoin.getSubjectCollection(subjectName)) {
+        this.setMappings(UniAnyJoin, [
             {
                 key: 'subjectId',
                 collection: UniAnyJoin.getSubjectCollection(subjectName)
@@ -56,20 +56,40 @@ UniCollection.publish('uniAnyJoin', function(subjectId, subjectName){
     });
 });
 
+UniCollection.publish('uniAnyJoinUserIdInSubject', function (subjectId, subjectName, userId, joiningName) {
+    if (!(typeof subjectId !== 'string' && subjectId) || !UniUsers.getLoggedInId() ||
+        (typeof userId !== 'string' && userId) || (typeof joiningName !== 'string' && joiningName)) {
+        this.ready();
+    }
+    if (subjectName && UniAnyJoin.getSubjectCollection(subjectName)) {
+        this.setMappings(UniAnyJoin, [
+            {
+                key: 'subjectId',
+                collection: UniAnyJoin.getSubjectCollection(subjectName)
 
-UniCollection.publish('uniAnyJoinUsersToAccept', function(joiningName, subjectId, subjectName){
-    if(!joiningName || !subjectId || !UniUsers.getLoggedInId() || !subjectName){
+            }
+        ]);
+    }
+    return UniAnyJoin.find({
+        joiningName: joiningName,
+        subjectId: subjectId,
+        possessorId: userId
+    }, {transform: null, sort: {createdAt: -1}, limit:1});
+});
+
+
+UniCollection.publish('uniAnyJoinUsersToAccept', function (joiningName, subjectId, subjectName) {
+    if (!joiningName || !subjectId || !UniUsers.getLoggedInId() || !subjectName) {
         this.ready();
     }
     check(subjectId, String);
     var coll = UniAnyJoin.getSubjectCollection(subjectName);
     var doc = coll.findOne({_id: subjectId});
-    if(!coll || (!doc.joinCanAcceptRequest(joiningName, UniUsers.getLoggedIn()) &&
-        !doc.joinCanSendInvitation(joiningName, UniUsers.getLoggedIn()))){
+    if (!coll || (!doc.joinCanAcceptRequest(joiningName, UniUsers.getLoggedIn()) && !doc.joinCanSendInvitation(joiningName, UniUsers.getLoggedIn()))) {
         this.ready();
     }
 
-    this.setMappings(UniAnyJoin,[
+    this.setMappings(UniAnyJoin, [
         {
             key: 'possessorId',
             collection: UniUsers
@@ -77,25 +97,26 @@ UniCollection.publish('uniAnyJoinUsersToAccept', function(joiningName, subjectId
         }
     ]);
 
-    return UniAnyJoin.find({$and:[
-        {subjectId: subjectId},
-        {$or: [{status: UniAnyJoin.STATUS_INVITED}, {status: UniAnyJoin.STATUS_REQUESTED}]}
-    ]});
+    return UniAnyJoin.find({
+        $and: [
+            {subjectId: subjectId},
+            {$or: [{status: UniAnyJoin.STATUS_INVITED}, {status: UniAnyJoin.STATUS_REQUESTED}]}
+        ]
+    });
 });
 
-UniCollection.publish('uniAnyJoinSearchUsers', function(term, joiningName, subjectId, subjectName){
-    if(!joiningName || !subjectId || !UniUsers.getLoggedInId() || !subjectName || !term){
+UniCollection.publish('uniAnyJoinSearchUsers', function (term, joiningName, subjectId, subjectName) {
+    if (!joiningName || !subjectId || !UniUsers.getLoggedInId() || !subjectName || !term) {
         this.ready();
         return;
     }
     check(subjectId, String);
     var coll = UniAnyJoin.getSubjectCollection(subjectName);
     var doc = coll.findOne({_id: subjectId});
-    if(!doc.joinCanAcceptRequest(joiningName, UniUsers.getLoggedIn()) &&
-        !doc.joinCanSendInvitation(joiningName, UniUsers.getLoggedIn())){
+    if (!doc.joinCanAcceptRequest(joiningName, UniUsers.getLoggedIn()) && !doc.joinCanSendInvitation(joiningName, UniUsers.getLoggedIn())) {
         this.ready();
     }
-    this.setMappings(UniUsers,[
+    this.setMappings(UniUsers, [
         {
             key: 'possessorId',
             collection: UniAnyJoin,
@@ -104,6 +125,9 @@ UniCollection.publish('uniAnyJoinSearchUsers', function(term, joiningName, subje
 
         }
     ]);
-    return UniUsers.find({'profile.name': UniUtils.getInSensitiveRegExpForTerm(term)}, {fields: {_id: 1, profile:1}, limit: 50});
+    return UniUsers.find({'profile.name': UniUtils.getInSensitiveRegExpForTerm(term)}, {
+        fields: {_id: 1, profile: 1},
+        limit: 50
+    });
 });
 
