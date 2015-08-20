@@ -91,7 +91,7 @@ UniAnyJoin._addClientActions = function(collection){
             if(_.isFunction(userId)){
                 userId = UniUsers.getLoggedInId();
             }
-            userId = UniUtils.getIdIfDocument(userId) || UniUser.getLoggedInId();
+            userId = UniUtils.getIdIfDocument(userId) || UniUsers.getLoggedInId();
             if(this.joinGetPolicy(joiningName) === UniAnyJoin.TYPE_JOIN_OPEN){
                 return Meteor.call('UniAnyJoin/join', joiningName, collection._name, this._id, userId, cb);
             }

@@ -67,6 +67,10 @@ UniCollection.publish('uniAnyJoinUserIdInSubject', function (subjectId, subjectN
                 key: 'subjectId',
                 collection: UniAnyJoin.getSubjectCollection(subjectName)
 
+            },
+            {
+                key: 'possessorId',
+                collection: UniUsers
             }
         ]);
     }
@@ -76,7 +80,6 @@ UniCollection.publish('uniAnyJoinUserIdInSubject', function (subjectId, subjectN
         possessorId: userId
     }, {transform: null, sort: {createdAt: -1}, limit:1});
 });
-
 
 UniCollection.publish('uniAnyJoinUsersToAccept', function (joiningName, subjectId, subjectName) {
     if (!joiningName || !subjectId || !UniUsers.getLoggedInId() || !subjectName) {
