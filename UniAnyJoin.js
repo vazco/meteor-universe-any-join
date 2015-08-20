@@ -46,8 +46,9 @@ UniAnyJoin.setSchema(new SimpleSchema({
                 if (this.isInsert || this.isUpsert) {
                     return this.value || this.userId;
                 }
+                this.value = undefined;
+                this.unset();
             },
-            denyUpdate: true,
             optional: true
         },
         createdAt: {
