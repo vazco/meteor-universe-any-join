@@ -11,7 +11,7 @@ var apiUseCommon = [
     'underscore',
     'check',
     'templating',
-    'vazco:universe-utilities@1.2.1',
+    'universe:utilities@1.0.0',
     'vazco:universe-collection@1.7.5',
     'vazco:universe-access@1.5.2',
     'anti:i18n@0.4.3'
