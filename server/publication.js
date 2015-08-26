@@ -17,9 +17,9 @@ UniCollection.publish('uniAnyJoinMyInvitations', function () {
                 var subject = col.findOne({_id: doc.subjectId}, {fields: {title: 1, name: 1}});
                 subjects[id] = {
                     id: subject._id,
-                    colName: subject.name
+                    colName: col.getCollectionName()
                 };
-                sub.added(subject.name, subject._id, doc);
+                sub.added(col.getCollectionName(), subject._id, subject);
             }
             sub.added(UniAnyJoin._name, id, doc);
         },
