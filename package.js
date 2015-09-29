@@ -18,13 +18,13 @@ var apiUseCommon = [
 ];
 
 Package.onUse(function (api) {
-    api.versionsFrom('METEOR@1.0.4');
+    api.versionsFrom('METEOR@1.1.0.3');
 
     api.use(apiUseCommon);
 
     api.use([
         'templating',
-        'less',
+        'less@2.5.0_2',
         'check'
     ], 'client');
 
