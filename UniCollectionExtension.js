@@ -141,7 +141,7 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {UniCollection.UniDoc}
          */
         joinGetRow: function (joiningName, userId) {
-            userId = UniUtils.clearSpacebarsKwObject(userId);
+            userId = sanitizeFn(userId);
             userId = UniUtils.getIdIfDocument(userId);
             return UniAnyJoin.findOne({
                 joiningName: joiningName,
@@ -158,7 +158,7 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinIsJoined: function (joiningName, userId) {
-            userId = UniUtils.clearSpacebarsKwObject(userId);
+            userId = sanitizeFn(userId);
             userId = UniUtils.getIdIfDocument(userId) || UniUsers.getLoggedInId();
             var doc = this.joinGetRow(joiningName, userId);
             var res = _runCallback.call(this, 'isJoined', joiningName, userId);
@@ -176,8 +176,8 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinCanJoinDirectly: function (joiningName, userId, acceptorId) {
-            userId = UniUtils.clearSpacebarsKwObject(userId);
-            acceptorId = UniUtils.clearSpacebarsKwObject(acceptorId);
+            userId = sanitizeFn(userId);
+            acceptorId = sanitizeFn(acceptorId);
             userId = UniUtils.getIdIfDocument(userId);
             acceptorId = acceptorId || userId;
             if (this.joinIsJoined(joiningName, userId)) {
@@ -206,7 +206,7 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinCanSendInvitation: function (joiningName, user) {
-            user = UniUtils.clearSpacebarsKwObject(user);
+            user = sanitizeFn(user);
             user = UniUsers.ensureUniUser(user);
             if (!user) {
                 return false;
@@ -226,7 +226,7 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinCanSendRequest: function (joiningName, user) {
-            user = UniUtils.clearSpacebarsKwObject(user);
+            user = sanitizeFn(user);
             user = UniUsers.ensureUniUser(user);
             if (!user || this.joinIsJoined(joiningName, user)) {
                 return false;
@@ -246,7 +246,7 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinCanAcceptRequest: function (joiningName, acceptor) {
-            acceptor = UniUtils.clearSpacebarsKwObject(acceptor);
+            acceptor = sanitizeFn(acceptor);
             acceptor = UniUsers.ensureUniUser(acceptor);
             var res = _runCallback.call(this, 'canAcceptRequest', joiningName, acceptor);
             if (_.isBoolean(res)) {
@@ -263,7 +263,7 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinCanChangePolicy: function (joiningName, user) {
-            user = UniUtils.clearSpacebarsKwObject(user);
+            user = sanitizeFn(user);
             user = UniUsers.ensureUniUser(user);
             var res = _runCallback.call(this, 'canChangePolicy', joiningName, user);
             if (_.isBoolean(res)) {
@@ -288,7 +288,7 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinIsUserInvited: function (joiningName, userId) {
-            userId = UniUtils.clearSpacebarsKwObject(userId);
+            userId = sanitizeFn(userId);
             userId = UniUtils.getIdIfDocument(UniUtils.getUniUserObject(userId));
             var doc = this.joinGetRow(joiningName, userId);
             return doc && doc.status === UniAnyJoin.STATUS_INVITED;
@@ -301,7 +301,7 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinIsRequestSent: function (joiningName, userId) {
-            userId = UniUtils.clearSpacebarsKwObject(userId);
+            userId = sanitizeFn(userId);
             userId = UniUtils.getIdIfDocument(UniUtils.getUniUserObject(userId));
             var doc = this.joinGetRow(joiningName, userId);
             return doc && doc.status === UniAnyJoin.STATUS_REQUESTED;
@@ -316,8 +316,8 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinCanResign: function (joiningName, acceptor, user) {
-            acceptor = UniUtils.clearSpacebarsKwObject(acceptor);
-            user = UniUtils.clearSpacebarsKwObject(user);
+            acceptor = sanitizeFn(acceptor);
+            user = sanitizeFn(user);
             acceptor = UniUsers.ensureUniUser(acceptor);
             var res = _runCallback.call(this, 'canResign', joiningName, user, acceptor);
             if (_.isBoolean(res)) {
@@ -340,7 +340,7 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinCanGetPossessorsOfEntries: function (joiningName, statuses, caller) {
-            caller = UniUtils.clearSpacebarsKwObject(caller);
+            caller = sanitizeFn(caller);
             caller = UniUsers.ensureUniUser(caller);
             var res = _runCallback.call(this, 'canGetPossessorsOfEntries', joiningName, statuses, caller);
             if (_.isBoolean(res)) {
@@ -353,6 +353,9 @@ var _addJoiningHelpersToDocument = function (collection) {
     collection.helpers(helpers);
 };
 
+var sanitizeFn = UniUtils.clearSpacebarsKwObject || function (x) {
+        return x;
+    };
 
 var _runCallback = function (callbackName, joiningName) {
     var cb = UniUtils.get(this.getCollection(), '_joiningCallbacks.' + joiningName + '.' + callbackName);
