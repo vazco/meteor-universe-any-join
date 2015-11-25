@@ -169,7 +169,7 @@ UniAnyJoin._addClientActions = function(collection){
 
     };
 
-    collection.helpers(helpers);
+    collection.docHelpers(helpers);
 };
 
 var getCallback = function(args){

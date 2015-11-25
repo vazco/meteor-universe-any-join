@@ -262,7 +262,7 @@ UniAnyJoin._addServerActions = function(collection){
         }
     };
 
-    collection.helpers(helpers);
+    collection.docHelpers(helpers);
 };
 
 Meteor.methods({

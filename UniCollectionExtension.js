@@ -350,7 +350,7 @@ var _addJoiningHelpersToDocument = function (collection) {
         }
     };
 
-    collection.helpers(helpers);
+    collection.docHelpers(helpers);
 };
 
 var sanitizeFn = UniUtils.clearSpacebarsKwObject || function (x) {

@@ -1,4 +1,8 @@
-UniAnyJoin = new UniCollection('anyJoin');
+UniAnyJoin = new UniCollection('anyJoin', {
+    mixins: [
+        new UniCollection.mixins.PublishAccessMixin()
+    ]
+});
 
 UniAnyJoin.TYPE_JOIN_REQUEST = 'join_request'; // first must be sent request, moderator accept members
 UniAnyJoin.TYPE_JOIN_INVITATION = 'join_invitation'; // only invited can join
@@ -98,7 +102,7 @@ UniAnyJoin.getSubjectCollection = function (name) {
     return name && UniAnyJoin._collections[name];
 };
 
-UniAnyJoin.helpers({
+UniAnyJoin.docHelpers({
     getSubject: function (options) {
         "use strict";
         var coll = UniAnyJoin.getSubjectCollection(this.subjectCollectionName);
