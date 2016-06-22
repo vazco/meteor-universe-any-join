@@ -82,7 +82,7 @@ UniAnyJoin._addToSchemaJoiningFields = function (collection, joiningName) {
             UniAnyJoin.TYPE_JOIN_OPEN
         ];
         var labels = _(allowedValues).map(function (v) {
-            return i18n('anyJoin.types.' + v);
+            return i18n.__('anyJoin.types.' + v);
         });
             //adds configuration of policy, field to schema
             newSchemaPart[joiningPolicyPropertyName] = {
@@ -98,7 +98,7 @@ UniAnyJoin._addToSchemaJoiningFields = function (collection, joiningName) {
                         return res || this.value || UniAnyJoin.TYPE_JOIN_REQUEST;
                     }
                 },
-                label: i18n('anyJoin.policyLabel', joiningName),
+                label: i18n.__('anyJoin.policyLabel', joiningName),
                 optional: true
                 //autoform: {
                 //    options: _.object(allowedValues, labels)

@@ -14,13 +14,13 @@ UniAnyJoin._addServerActions = function(collection){
             toUser = UniUsers.ensureUniUser(toUser||null);
             originator = UniUsers.ensureUniUser(originator);
             if(this.joinIsJoined(joiningName, toUser)){
-                throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
+                throw new Meteor.Error(500, i18n.__('anyJoin:errors:userAlreadyJoined'));
             }
             if(!originator){
-                throw new Meteor.Error(403, i18n('anyJoin:errors:missingOriginator'));
+                throw new Meteor.Error(403, i18n.__('anyJoin:errors:missingOriginator'));
             }
             if(!this.joinCanSendInvitation(joiningName, originator)){
-                throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
+                throw new Meteor.Error(403, i18n.__('anyJoin:errors:permissionDenied'));
             }
             var lastJoiningDoc = this.joinGetRow(joiningName, toUser);
             var doc = this;
@@ -51,7 +51,7 @@ UniAnyJoin._addServerActions = function(collection){
             fromUser = UniUsers.ensureUniUser(fromUser);
 
             if(this.joinIsJoined(joiningName, fromUser)){
-                throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
+                throw new Meteor.Error(500, i18n.__('anyJoin:errors:userAlreadyJoined'));
             }
             originator = UniUsers.ensureUniUser(originator || fromUser);
             var lastJoiningDoc = this.joinGetRow(joiningName, fromUser);
@@ -67,7 +67,7 @@ UniAnyJoin._addServerActions = function(collection){
             }
 
             if(!this.joinCanSendRequest(joiningName, fromUser)){
-                throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
+                throw new Meteor.Error(403, i18n.__('anyJoin:errors:permissionDenied'));
             }
 
             var insertRes = UniAnyJoin.insert({
@@ -93,18 +93,18 @@ UniAnyJoin._addServerActions = function(collection){
          */
         joinAcceptRequest: function(joiningName, fromUser, acceptor){
             if(this.joinIsJoined(joiningName, fromUser)){
-                throw new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined'));
+                throw new Meteor.Error(500, i18n.__('anyJoin:errors:userAlreadyJoined'));
             }
 
             var lastJoiningDoc = this.joinGetRow(joiningName, fromUser);
             if(!lastJoiningDoc){
-                throw new Meteor.Error(404, i18n('anyJoin:errors:missingJoiningRequest'));
+                throw new Meteor.Error(404, i18n.__('anyJoin:errors:missingJoiningRequest'));
             }
-            acceptor = UniUsers.ensureUniUser(acceptor, UniUsers.matchingDocument(), i18n('anyJoin:errors:missingAcceptor'));
+            acceptor = UniUsers.ensureUniUser(acceptor, UniUsers.matchingDocument(), i18n.__('anyJoin:errors:missingAcceptor'));
 
             if(lastJoiningDoc.type !== UniAnyJoin.TYPE_JOIN_REQUEST ||
                 !this.joinCanAcceptRequest(joiningName, acceptor)){
-                throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
+                throw new Meteor.Error(403, i18n.__('anyJoin:errors:permissionDenied'));
             }
 
             var updateRes = lastJoiningDoc.update({$set:{status: UniAnyJoin.STATUS_JOINED, acceptorId: acceptor._id}});
@@ -124,7 +124,7 @@ UniAnyJoin._addServerActions = function(collection){
             check(toUserId, String);
             var lastJoiningDoc = this.joinGetRow(joiningName, toUserId);
             if(!lastJoiningDoc){
-                throw new Meteor.Error(404, i18n('anyJoin:errors:missingJoiningInvitation'));
+                throw new Meteor.Error(404, i18n.__('anyJoin:errors:missingJoiningInvitation'));
             }
             if(lastJoiningDoc.type === UniAnyJoin.TYPE_JOIN_INVITATION && lastJoiningDoc.possessorId === toUserId){
                 var updateRes = lastJoiningDoc.update({$set:{status: UniAnyJoin.STATUS_JOINED, acceptorId: toUserId}});
@@ -145,7 +145,7 @@ UniAnyJoin._addServerActions = function(collection){
             acceptor = UniUsers.ensureUniUser(acceptor || user);
 
             if(!this.joinCanJoinDirectly(joiningName, user, acceptor)){
-                throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
+                throw new Meteor.Error(403, i18n.__('anyJoin:errors:permissionDenied'));
             }
             var lastJoiningDoc = this.joinGetRow(joiningName, user);
             if(lastJoiningDoc){
@@ -184,7 +184,7 @@ UniAnyJoin._addServerActions = function(collection){
         joinChangePolicy: function(joiningName, type, user){
             user = UniUsers.ensureUniUser(user);
             if(!this.joinCanChangePolicy(joiningName, user)){
-                throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
+                throw new Meteor.Error(403, i18n.__('anyJoin:errors:permissionDenied'));
             }
             this['_joiningPolicy_'+joiningName] = type;
             return this.save('_joiningPolicy_'+joiningName);
@@ -198,11 +198,11 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         joinResign: function(joiningName, user, acceptor){
-            user = UniUsers.ensureUniUser(user, UniUsers.matchingDocument(), i18n('anyJoin:errors:missingAcceptor'));
+            user = UniUsers.ensureUniUser(user, UniUsers.matchingDocument(), i18n.__('anyJoin:errors:missingAcceptor'));
             acceptor = UniUsers.ensureUniUser(acceptor || user);
 
             if(!this.joinCanResign(joiningName, acceptor, user)){
-                throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
+                throw new Meteor.Error(403, i18n.__('anyJoin:errors:permissionDenied'));
             }
             var lastJoiningDoc = this.joinGetRow(joiningName, user._id);
             if(lastJoiningDoc){
@@ -230,7 +230,7 @@ UniAnyJoin._addServerActions = function(collection){
                 statuses = [statuses];
             }
             if(!this.joinCanGetPossessorsOfEntries(joiningName, statuses, caller)){
-                throw new Meteor.Error(403, i18n('anyJoin:errors:permissionDenied'));
+                throw new Meteor.Error(403, i18n.__('anyJoin:errors:permissionDenied'));
             }
             var query = {
                 joiningName: joiningName, subjectId: this._id, subjectCollectionName: this.getCollectionName()
@@ -313,7 +313,7 @@ var _getSubjectDocument = function(collectionName, subjectId){
     check(coll, UniCollection);
     var subject = coll.findOne(subjectId);
     if(!subject){
-        throw new Meteor.Error(403, i18n('anyJoin:errors:noSubject'));
+        throw new Meteor.Error(403, i18n.__('anyJoin:errors:noSubject'));
     }
     return subject;
 };

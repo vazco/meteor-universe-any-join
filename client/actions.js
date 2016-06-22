@@ -16,12 +16,12 @@ UniAnyJoin._addClientActions = function(collection){
             cb = getCallback(arguments);
             toUser = UniUsers.ensureUniUser(toUser);
             if(this.joinIsJoined(joiningName, toUser)){
-                cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
+                cb(new Meteor.Error(500, i18n.__('anyJoin:errors:userAlreadyJoined')));
             }
             if(this.joinCanSendInvitation(joiningName) && toUser){
                 return Meteor.call('UniAnyJoin/joinSendInvitation', joiningName, collection._name, this._id, toUser._id, cb);
             }
-            cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
+            cb(new Meteor.Error(403, i18n.__('anyJoin.errors.permissionDenied')));
         },
         /**
          * Sends joining request
@@ -36,12 +36,12 @@ UniAnyJoin._addClientActions = function(collection){
             cb = getCallback(arguments);
             var fromUser = UniUsers.getLoggedIn();
             if(fromUser && this.joinIsJoined(joiningName, fromUser)){
-                cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
+                cb(new Meteor.Error(500, i18n.__('anyJoin:errors:userAlreadyJoined')));
             }
             if(this.joinCanSendRequest(joiningName, fromUser) && fromUser){
                 return Meteor.call('UniAnyJoin/joinSendRequest', joiningName, collection._name, this._id, cb);
             }
-            cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
+            cb(new Meteor.Error(403, i18n.__('anyJoin.errors.permissionDenied')));
         },
         /**
          * Accepts users request and join him to subject
@@ -55,13 +55,13 @@ UniAnyJoin._addClientActions = function(collection){
         joinAcceptRequest: function(joiningName, fromUser, cb){
             cb = getCallback(arguments);
             if(this.joinIsJoined(joiningName, fromUser)){
-                cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
+                cb(new Meteor.Error(500, i18n.__('anyJoin:errors:userAlreadyJoined')));
             }
             var acceptor = UniUsers.getLoggedIn();
             if(this.joinCanAcceptRequest(joiningName, acceptor) &&  fromUser && acceptor){
                 return Meteor.call('UniAnyJoin/joinAcceptRequest', joiningName, collection._name, this._id, fromUser._id, cb);
             }
-            cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
+            cb(new Meteor.Error(403, i18n.__('anyJoin.errors.permissionDenied')));
         },
         /**
          * Accepts invitation to joining
@@ -73,7 +73,7 @@ UniAnyJoin._addClientActions = function(collection){
         joinAcceptInvitation: function(joiningName, cb){
             cb = getCallback(arguments);
             if(this.joinIsJoined(joiningName, UniUsers.getLoggedIn())){
-                cb(new Meteor.Error(500, i18n('anyJoin:errors:userAlreadyJoined')));
+                cb(new Meteor.Error(500, i18n.__('anyJoin:errors:userAlreadyJoined')));
             }
             return Meteor.call('UniAnyJoin/joinAcceptInvitation', joiningName, collection._name, this._id, cb);
         },
@@ -95,7 +95,7 @@ UniAnyJoin._addClientActions = function(collection){
             if(this.joinGetPolicy(joiningName) === UniAnyJoin.TYPE_JOIN_OPEN){
                 return Meteor.call('UniAnyJoin/join', joiningName, collection._name, this._id, userId, cb);
             }
-            cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
+            cb(new Meteor.Error(403, i18n.__('anyJoin.errors.permissionDenied')));
         },
         /**
          * Sets policy of joining, allowed types:
@@ -115,7 +115,7 @@ UniAnyJoin._addClientActions = function(collection){
             if(user && this.joinCanChangePolicy(joiningName, user)){
                 return Meteor.call('UniAnyJoin/joinChangePolicy', joiningName, collection._name, this._id, type, cb);
             }
-            cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
+            cb(new Meteor.Error(403, i18n.__('anyJoin.errors.permissionDenied')));
         },
         /**
          * Resigns from joining, rejects user request or invitation
@@ -135,7 +135,7 @@ UniAnyJoin._addClientActions = function(collection){
             if(user && this.joinCanResign(joiningName, UniUsers.getLoggedIn(), user)){
                 return Meteor.call('UniAnyJoin/joinResign', joiningName, collection._name, this._id, user._id, cb);
             }
-            cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
+            cb(new Meteor.Error(403, i18n.__('anyJoin.errors.permissionDenied')));
         },
         /**
          * Gets entries possessors of current subject
@@ -164,7 +164,7 @@ UniAnyJoin._addClientActions = function(collection){
                     cb
                 );
             }
-            cb(new Meteor.Error(403, i18n('anyJoin.errors.permissionDenied')));
+            cb(new Meteor.Error(403, i18n.__('anyJoin.errors.permissionDenied')));
         }
 
     };

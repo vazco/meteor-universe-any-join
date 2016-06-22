@@ -15,7 +15,8 @@ var apiUseCommon = [
     'universe:utilities@2.0.7',
     'universe:utilities-blaze@1.5.0',
     'universe:collection@2.0.4',
-    'anti:i18n@0.4.3'
+    'universe:i18n',
+    'ecmascript'
 ];
 
 Package.onUse(function (api) {

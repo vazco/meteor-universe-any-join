@@ -1,6 +1,6 @@
 'use strict';
 
-i18n.map('en', {
+i18n.addTranslations('en-US', {
     anyJoin: {
         leave: 'Leave',
         join: 'Join',
