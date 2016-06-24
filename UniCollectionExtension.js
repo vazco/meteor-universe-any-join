@@ -84,28 +84,28 @@ UniAnyJoin._addToSchemaJoiningFields = function (collection, joiningName) {
         var labels = _(allowedValues).map(function (v) {
             return i18n.__('anyJoin.types.' + v);
         });
-            //adds configuration of policy, field to schema
-            newSchemaPart[joiningPolicyPropertyName] = {
-                type: String,
-                allowedValues: allowedValues,
-                autoValue: function () {
-                    if (this.isInsert && Meteor.isServer) {
-                        var res;
-                        var cb = UniUtils.get(collection, '_joiningCallbacks.' + joiningName + '.onGetDefaultPolicy');
-                        if (_.isFunction(cb)) {
-                            res = cb.call(this, joiningName, collection);
-                        }
-                        return res || this.value || UniAnyJoin.TYPE_JOIN_REQUEST;
+        //adds configuration of policy, field to schema
+        newSchemaPart[joiningPolicyPropertyName] = {
+            type: String,
+            allowedValues: allowedValues,
+            autoValue: function () {
+                if (this.isInsert && Meteor.isServer) {
+                    var res;
+                    var cb = UniUtils.get(collection, '_joiningCallbacks.' + joiningName + '.onGetDefaultPolicy');
+                    if (_.isFunction(cb)) {
+                        res = cb.call(this, joiningName, collection);
                     }
-                },
-                label: i18n.__('anyJoin.policyLabel', joiningName),
-                optional: true
-                //autoform: {
-                //    options: _.object(allowedValues, labels)
-                //}
-            };
-            collection.setSchema(newSchemaPart);
-            return 'simpleSchema';
+                    return res || this.value || UniAnyJoin.TYPE_JOIN_REQUEST;
+                }
+            },
+            label: i18n.__('anyJoin.policyLabel', joiningName),
+            optional: true
+            //autoform: {
+            //    options: _.object(allowedValues, labels)
+            //}
+        };
+        collection.setSchema(newSchemaPart);
+        return 'simpleSchema';
     }
     if (Meteor.isServer) {
         //Providing support of default policy in situation, when simple schema wasn't attached
@@ -288,9 +288,7 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinIsUserInvited: function (joiningName, userId) {
-            userId = sanitizeFn(userId);
-            userId = UniUtils.getIdIfDocument(UniUtils.getUniUserObject(userId));
-            var doc = this.joinGetRow(joiningName, userId);
+            var doc = this.joinGetRow(joiningName, userId && userId._id ? userId._id : userId);
             return doc && doc.status === UniAnyJoin.STATUS_INVITED;
         },
         /**
@@ -301,9 +299,7 @@ var _addJoiningHelpersToDocument = function (collection) {
          * @returns {boolean}
          */
         joinIsRequestSent: function (joiningName, userId) {
-            userId = sanitizeFn(userId);
-            userId = UniUtils.getIdIfDocument(UniUtils.getUniUserObject(userId));
-            var doc = this.joinGetRow(joiningName, userId);
+            var doc = this.joinGetRow(joiningName, userId && userId._id ? userId._id : userId);
             return doc && doc.status === UniAnyJoin.STATUS_REQUESTED;
         },
         /**
