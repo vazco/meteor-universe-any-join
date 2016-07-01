@@ -14,7 +14,7 @@ UniAnyJoin._addClientActions = function(collection){
          */
         joinSendInvitation: function(joiningName, toUser, cb){
             cb = getCallback(arguments);
-            toUser = UniUsers.ensureUniUser(toUser);
+            //toUser = UniUsers.ensureUniUser(toUser);
             if(this.joinIsJoined(joiningName, toUser)){
                 cb(new Meteor.Error(500, i18n.__('anyJoin:errors:userAlreadyJoined')));
             }

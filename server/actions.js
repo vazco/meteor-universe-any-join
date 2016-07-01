@@ -11,6 +11,7 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         joinSendInvitation: function(joiningName, toUser, originator){
+            console.log('joinSendInvitation');
             toUser = UniUsers.ensureUniUser(toUser||null);
             originator = UniUsers.ensureUniUser(originator);
             if(this.joinIsJoined(joiningName, toUser)){
@@ -268,8 +269,12 @@ UniAnyJoin._addServerActions = function(collection){
 Meteor.methods({
     'UniAnyJoin/joinSendInvitation': function(joiningName, collectionName, subjectId, userId){
         check(this.userId, String);
-        var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.joinSendInvitation(joiningName, userId, this.userId);
+        var coll = UniAnyJoin.getSubjectCollection(collectionName);
+        check(coll, UniCollection);
+        if(coll.subscribe('relatIn-organisationById', subjectId).ready()) {
+            var subject = _getSubjectDocument(collectionName, subjectId);
+            return subject.joinSendInvitation(joiningName, userId, this.userId);
+        }
     },
     'UniAnyJoin/joinSendRequest': function(joiningName, collectionName, subjectId){
         check(this.userId, String);
