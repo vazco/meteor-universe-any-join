@@ -14,7 +14,7 @@ UniAnyJoin._addClientActions = function(collection){
          */
         joinSendInvitation: function(joiningName, toUser, cb){
             cb = getCallback(arguments);
-            //toUser = UniUsers.ensureUniUser(toUser);
+            //toUser = UniUsers.ensureUniDoc(toUser);
             if(this.joinIsJoined(joiningName, toUser)){
                 cb(new Meteor.Error(500, i18n.__('anyJoin:errors:userAlreadyJoined')));
             }
@@ -131,7 +131,7 @@ UniAnyJoin._addClientActions = function(collection){
                 user = UniUsers.getLoggedIn();
             }
             cb = getCallback(arguments);
-            user = UniUsers.ensureUniUser(user);
+            user = UniUsers.ensureUniDoc(user);
             if(user && this.joinCanResign(joiningName, UniUsers.getLoggedIn(), user)){
                 return Meteor.call('UniAnyJoin/joinResign', joiningName, collection._name, this._id, user._id, cb);
             }
