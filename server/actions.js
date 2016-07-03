@@ -13,6 +13,7 @@ UniAnyJoin._addServerActions = function(collection){
         joinSendInvitation: function(joiningName, toUser, originator){
             toUser = UniUsers.ensureUniUser(toUser||null);
             originator = UniUsers.ensureUniUser(originator);
+            console.log('joinSendInvitation');
             if(this.joinIsJoined(joiningName, toUser)){
                 throw new Meteor.Error(500, i18n.__('anyJoin:errors:userAlreadyJoined'));
             }
@@ -27,6 +28,7 @@ UniAnyJoin._addServerActions = function(collection){
             if(_.isObject(lastJoiningDoc) && lastJoiningDoc.status === UniAnyJoin.STATUS_REQUESTED){
                 return doc.joinAcceptRequest(joiningName, toUser, originator);
             }
+            console.log('Insert action');
             var insertRes = UniAnyJoin.insert({
                 joiningName: joiningName,
                 subjectId: doc._id,
@@ -268,43 +270,94 @@ UniAnyJoin._addServerActions = function(collection){
 Meteor.methods({
     'UniAnyJoin/joinSendInvitation': function(joiningName, collectionName, subjectId, userId){
         check(this.userId, String);
-        var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.joinSendInvitation(joiningName, userId, this.userId);
+        let currentUserId = this.userId;
+        var coll = UniAnyJoin.getSubjectCollection(collectionName);
+        coll.subscribe('relatIn-organisationById', subjectId, {
+            onReady: function () {
+                var subject = _getSubjectDocument(collectionName, subjectId);
+                return subject.joinSendInvitation(joiningName, userId, currentUserId);
+            }
+        });
     },
     'UniAnyJoin/joinSendRequest': function(joiningName, collectionName, subjectId){
         check(this.userId, String);
-        var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.joinSendRequest(joiningName, this.userId, this.userId);
+        let currentUserId = this.userId;
+        var coll = UniAnyJoin.getSubjectCollection(collectionName);
+        coll.subscribe('relatIn-organisationById', subjectId, {
+            onReady: function () {
+                var subject = _getSubjectDocument(collectionName, subjectId);
+                return subject.joinSendRequest(joiningName, currentUserId, currentUserId);
+            }
+        });
     },
     'UniAnyJoin/joinAcceptRequest': function(joiningName, collectionName, subjectId, forUserId){
         check(this.userId, String);
-        var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.joinAcceptRequest(joiningName, forUserId, this.userId);
+        let currentUserId = this.userId;
+        var coll = UniAnyJoin.getSubjectCollection(collectionName);
+        coll.subscribe('relatIn-organisationById', subjectId, {
+            onReady: function () {
+                var subject = _getSubjectDocument(collectionName, subjectId);
+                return subject.joinAcceptRequest(joiningName, forUserId, currentUserId);
+            }
+        });
     },
     'UniAnyJoin/joinAcceptInvitation': function(joiningName, collectionName, subjectId){
         check(this.userId, String);
-        var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.joinAcceptInvitation(joiningName, this.userId);
+        let currentUserId = this.userId;
+        var coll = UniAnyJoin.getSubjectCollection(collectionName);
+        coll.subscribe('relatIn-organisationById', subjectId, {
+            onReady: function () {
+                var subject = _getSubjectDocument(collectionName, subjectId);
+                return subject.joinAcceptInvitation(joiningName, currentUserId);
+            }
+        });
     },
     'UniAnyJoin/join': function(joiningName, collectionName, subjectId, userId){
         check(this.userId, String);
-        var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.join(joiningName, userId || this.userId, this.userId);
+        let currentUserId = this.userId;
+        var coll = UniAnyJoin.getSubjectCollection(collectionName);
+        coll.subscribe('relatIn-organisationById', subjectId, {
+            onReady: function () {
+                var subject = _getSubjectDocument(collectionName, subjectId);
+                return subject.join(joiningName, userId || currentUserId, currentUserId);
+            }
+        });
     },
     'UniAnyJoin/joinChangePolicy': function(joiningName, collectionName, subjectId, type){
         check(this.userId, String);
-        var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.joinChangePolicy(joiningName, type, this.userId);
+        let currentUserId = this.userId;
+        var coll = UniAnyJoin.getSubjectCollection(collectionName);
+        coll.subscribe('relatIn-organisationById', subjectId, {
+            onReady: function () {
+                var subject = _getSubjectDocument(collectionName, subjectId);
+                return subject.joinChangePolicy(joiningName, type, currentUserId);
+            }
+        });
     },
     'UniAnyJoin/joinResign': function(joiningName, collectionName, subjectId, userId){
         check(this.userId, String);
-        var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.joinResign(joiningName, userId, this.userId);
+        let currentUserId = this.userId;
+        console.log(currentUserId);
+        var coll = UniAnyJoin.getSubjectCollection(collectionName);
+        console.log(subjectId);
+        coll.subscribe('relatIn-organisationById', subjectId, {
+            onReady: function () {
+                var subject = _getSubjectDocument(collectionName, subjectId);
+
+                return subject.joinResign(joiningName, userId, currentUserId);
+            }
+        });
     },
     'UniAnyJoin/joinGetPossessorsOfEntries': function(joiningName, collectionName, subjectId, statuses){
         check(this.userId, Match.OneOf(undefined, null, [String], String));
-        var subject = _getSubjectDocument(collectionName, subjectId);
-        return subject.joinGetPossessorsOfEntries(joiningName, statuses, this.userId);
+        let currentUserId = this.userId;
+        var coll = UniAnyJoin.getSubjectCollection(collectionName);
+        coll.subscribe('relatIn-organisationById', subjectId, {
+            onReady: function () {
+                var subject = _getSubjectDocument(collectionName, subjectId);
+                return subject.joinGetPossessorsOfEntries(joiningName, statuses, currentUserId);
+            }
+        });
     }
 });
 
