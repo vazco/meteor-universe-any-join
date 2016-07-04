@@ -13,7 +13,6 @@ UniAnyJoin._addServerActions = function(collection){
         joinSendInvitation: function(joiningName, toUser, originator){
             toUser = UniUsers.ensureUniUser(toUser||null);
             originator = UniUsers.ensureUniUser(originator);
-            console.log('joinSendInvitation');
             if(this.joinIsJoined(joiningName, toUser)){
                 throw new Meteor.Error(500, i18n.__('anyJoin:errors:userAlreadyJoined'));
             }
@@ -200,7 +199,9 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         joinResign: function(joiningName, user, acceptor){
-            user = UniUsers.ensureUniUser(user, UniUsers.matchingDocument(), i18n.__('anyJoin:errors:missingAcceptor'));
+            console.log(arguments, UniUsers.find().fetch().map(x => x._id).sort());
+            user = UniUsers.ensureUniUser(user, undefined, i18n.__('anyJoin:errors:missingAcceptor'));
+            //user = UniUsers.ensureUniUser(user, UniUsers.matchingDocument(), i18n.__('anyJoin:errors:missingAcceptor'));
             acceptor = UniUsers.ensureUniUser(acceptor || user);
 
             if(!this.joinCanResign(joiningName, acceptor, user)){
@@ -338,6 +339,7 @@ Meteor.methods({
         check(this.userId, String);
         let currentUserId = this.userId;
         console.log(currentUserId);
+        console.log(userId);
         var coll = UniAnyJoin.getSubjectCollection(collectionName);
         console.log(subjectId);
         coll.subscribe('relatIn-organisationById', subjectId, {

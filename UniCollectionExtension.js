@@ -192,7 +192,7 @@ var _addJoiningHelpersToDocument = function (collection) {
                 return true;
             }
             var acceptor = UniUsers.ensureUniUser(acceptorId);
-            if (acceptor && (acceptor._id === this.ownerId || acceptor.isAdmin())) {
+            if (acceptor && (this.isOwner(acceptor._id) || acceptor.isAdmin())) {
                 return true;
             }
             return this.joinGetPolicy(joiningName) === UniAnyJoin.TYPE_JOIN_OPEN;
@@ -215,7 +215,7 @@ var _addJoiningHelpersToDocument = function (collection) {
             if (_.isBoolean(res)) {
                 return res;
             }
-            return user && (user.isAdmin() || this.ownerId === user._id);
+            return user && (user.isAdmin() || this.isOwner(user._id));
         },
         /**
          * Checks if user can send joining request
@@ -252,7 +252,7 @@ var _addJoiningHelpersToDocument = function (collection) {
             if (_.isBoolean(res)) {
                 return res;
             }
-            return acceptor && (acceptor.isAdmin() || acceptor._id === this.ownerId);
+            return acceptor && (acceptor.isAdmin() || this.isOwner(acceptor._id));
         },
         /**
          * Checks if user can change policy of joining process.
@@ -269,7 +269,7 @@ var _addJoiningHelpersToDocument = function (collection) {
             if (_.isBoolean(res)) {
                 return res;
             }
-            return user && (this.ownerId === user._id || user.isAdmin());
+            return user && (this.isOwner(user._id) || user.isAdmin());
         },
         /**
          * Gets current policy of joining
@@ -319,7 +319,7 @@ var _addJoiningHelpersToDocument = function (collection) {
             if (_.isBoolean(res)) {
                 return res;
             }
-            if (acceptor && (acceptor.isAdmin || acceptor._id === this.ownerId)) {
+            if (acceptor && (acceptor.isAdmin || this.isOwner(acceptor._id))) {
                 return true;
             }
             user = UniUsers.ensureUniUser(user);
@@ -342,7 +342,7 @@ var _addJoiningHelpersToDocument = function (collection) {
             if (_.isBoolean(res)) {
                 return res;
             }
-            return caller && (this.ownerId === caller._id || caller.isAdmin());
+            return caller && (this.isOwner(caller._id) || caller.isAdmin());
         }
     };
 
