@@ -27,7 +27,6 @@ UniAnyJoin._addServerActions = function(collection){
             if(_.isObject(lastJoiningDoc) && lastJoiningDoc.status === UniAnyJoin.STATUS_REQUESTED){
                 return doc.joinAcceptRequest(joiningName, toUser, originator);
             }
-            console.log('Insert action');
             var insertRes = UniAnyJoin.insert({
                 joiningName: joiningName,
                 subjectId: doc._id,
@@ -199,9 +198,7 @@ UniAnyJoin._addServerActions = function(collection){
          * @returns {*}
          */
         joinResign: function(joiningName, user, acceptor){
-            console.log(arguments, UniUsers.find().fetch().map(x => x._id).sort());
             user = UniUsers.ensureUniUser(user, undefined, i18n.__('anyJoin:errors:missingAcceptor'));
-            //user = UniUsers.ensureUniUser(user, UniUsers.matchingDocument(), i18n.__('anyJoin:errors:missingAcceptor'));
             acceptor = UniUsers.ensureUniUser(acceptor || user);
 
             if(!this.joinCanResign(joiningName, acceptor, user)){
@@ -338,10 +335,7 @@ Meteor.methods({
     'UniAnyJoin/joinResign': function(joiningName, collectionName, subjectId, userId){
         check(this.userId, String);
         let currentUserId = this.userId;
-        console.log(currentUserId);
-        console.log(userId);
         var coll = UniAnyJoin.getSubjectCollection(collectionName);
-        console.log(subjectId);
         coll.subscribe('relatIn-organisationById', subjectId, {
             onReady: function () {
                 var subject = _getSubjectDocument(collectionName, subjectId);
