@@ -1,6 +1,14 @@
-## Abandonware
+<h1 align="center">
+    <a href="https://github.com/vazco">vazco</a>/Universe Any Join
+</h1>
 
-# Universe Any Join
+&nbsp;
+
+<h3 align="center">
+  -- Abandonware. This package is deprecated! --
+</h3>
+
+&nbsp;
 
 This package adds functionality of joining between user and any universe document.
 In very easy way, you can adds possibility of joining to your entity,
@@ -211,3 +219,9 @@ details [here](https://atmospherejs.com/vazco/universe-access)
 
 - [Atmosphere js](https://atmospherejs.com/?q=vazco%3Auniverse)
 - [Github](https://github.com/search?l=JavaScript&q=meteor-universe&type=Repositories&utf8=%E2%9C%93)
+
+### License
+
+<img src="https://vazco.eu/banner.png" align="right">
+
+**Like every package maintained by [Vazco](https://vazco.eu/), Universe Any Join is [MIT licensed](https://github.com/vazco/uniforms/blob/master/LICENSE).**
